@@ -86,7 +86,7 @@ public struct AdminVisualSeatEditorView: View {
                                 .font(.caption.bold())
                         }
                         .padding(12)
-                        .background(Color.white)
+                        .background(AppTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
 
                         HStack {
@@ -97,7 +97,7 @@ public struct AdminVisualSeatEditorView: View {
                                 .foregroundStyle(.blue)
                         }
                         .padding(12)
-                        .background(Color.white)
+                        .background(AppTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
 
                         HStack {
@@ -108,7 +108,7 @@ public struct AdminVisualSeatEditorView: View {
                                 .foregroundStyle(.purple)
                         }
                         .padding(12)
-                        .background(Color.white)
+                        .background(AppTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .padding(.horizontal, 20)

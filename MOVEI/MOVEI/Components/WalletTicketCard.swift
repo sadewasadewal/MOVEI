@@ -5,6 +5,21 @@
 
 import SwiftUI
 
+public func ticketArtworkCandidates(_ ticket: Ticket) -> [URL] {
+    var list: [URL] = []
+    if let b = ticket.resolvedBackdropURL { list.append(b) }
+    if let p = ticket.resolvedPosterURL, !list.contains(p) { list.append(p) }
+    let cleanTicket = ticket.movieTitle.filter { $0.isLetter || $0.isNumber }.lowercased()
+    if let movie = MovieService.shared.movies.first(where: {
+        let cleanMovie = $0.title.filter { $0.isLetter || $0.isNumber }.lowercased()
+        return cleanMovie == cleanTicket || cleanMovie.contains(cleanTicket) || cleanTicket.contains(cleanMovie) || $0.id == ticket.showID
+    }) {
+        if let mb = movie.resolvedBackdropURL, !list.contains(mb) { list.append(mb) }
+        if let mp = movie.resolvedPosterURL, !list.contains(mp) { list.append(mp) }
+    }
+    return list
+}
+
 public struct WalletTicketCard: View {
     public let ticket: Ticket
 
@@ -15,10 +30,10 @@ public struct WalletTicketCard: View {
     public var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                AsyncImage(url: URL(string: ticket.backdropURL)) { image in
+                RobustAsyncImage(candidateURLs: ticketArtworkCandidates(ticket)) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
-                    Rectangle().fill(AppTheme.ink)
+                    Rectangle().fill(AppTheme.passBackground)
                 }
                 .frame(height: 250)
                 .clipped()
@@ -53,7 +68,7 @@ public struct WalletTicketCard: View {
                         .foregroundStyle(AppTheme.lime)
 
                     Text(ticket.movieTitle)
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
                 }
@@ -70,27 +85,58 @@ public struct WalletTicketCard: View {
                 }
 
                 // Dotted perforation divider
-                HStack(spacing: 4) {
-                    ForEach(0..<38, id: \.self) { _ in
-                        Rectangle()
-                            .fill(AppTheme.muted.opacity(0.35))
-                            .frame(width: 4, height: 1.5)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 2)
+                DashedLine()
+                    .stroke(AppTheme.muted.opacity(0.35), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+                    .frame(height: 1.5)
+                    .padding(.vertical, 4)
 
                 // Barcode representation
-                VStack(spacing: 6) {
-                    BarcodeView(value: ticket.barcodeValue)
-                        .frame(height: 52)
-                    Text(ticket.ticketCode)
-                        .font(.caption2.monospaced())
-                        .foregroundStyle(AppTheme.muted)
+                VStack(spacing: 8) {
+                    ZStack {
+                        BarcodeView(value: ticket.barcodeValue)
+                            .frame(height: 52)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .opacity((ticket.status == "used" || ticket.status == "torn") ? 0.35 : 1.0)
+
+                        if ticket.status == "used" || ticket.status == "torn" {
+                            HStack(spacing: 5) {
+                                Image(systemName: "scissors")
+                                Text("TORN & ADMITTED")
+                            }
+                            .font(.system(size: 13, weight: .black))
+                            .tracking(1.4)
+                            .foregroundStyle(Color.red)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 6)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.red, style: StrokeStyle(lineWidth: 1.5, dash: [4, 2]))
+                            )
+                            .rotationEffect(.degrees(-5))
+                            .shadow(color: .black.opacity(0.12), radius: 4, y: 2)
+                        }
+                    }
+
+                    HStack {
+                        Text(ticket.ticketCode)
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(AppTheme.muted)
+
+                        if let scanned = ticket.scannedAt {
+                            Spacer()
+                            Text("Admitted \(scanned.formatted(date: .omitted, time: .shortened))")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(AppTheme.muted)
+                        }
+                    }
                 }
             }
             .padding(20)
-            .background(Color.white)
+            .background(AppTheme.surface)
         }
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(color: .black.opacity(0.16), radius: 20, y: 10)
@@ -132,10 +178,10 @@ public struct WalletPeekCard: View {
         .frame(maxWidth: .infinity)
         .background(
             ZStack {
-                AsyncImage(url: URL(string: ticket.backdropURL)) { image in
+                RobustAsyncImage(candidateURLs: ticketArtworkCandidates(ticket)) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
-                    AppTheme.ink
+                    AppTheme.passBackground
                 }
                 LinearGradient(colors: [.black.opacity(0.85), .black.opacity(0.95)], startPoint: .top, endPoint: .bottom)
             }
@@ -154,10 +200,10 @@ public struct WalletMiniCard: View {
 
     public var body: some View {
         HStack(spacing: 14) {
-            AsyncImage(url: URL(string: ticket.posterURL)) { image in
+            RobustAsyncImage(candidateURLs: ticketArtworkCandidates(ticket)) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
-                Rectangle().fill(AppTheme.ink)
+                Rectangle().fill(AppTheme.passBackground)
             }
             .frame(width: 50, height: 68)
             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -186,7 +232,7 @@ public struct WalletMiniCard: View {
                 .foregroundStyle(AppTheme.muted)
         }
         .padding(12)
-        .background(Color.white)
+        .background(AppTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
     }
@@ -266,5 +312,15 @@ public struct PassActionTile: View {
         .padding(16)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+public struct DashedLine: Shape {
+    public init() {}
+    public func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 0, y: rect.midY))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.midY))
+        return path
     }
 }

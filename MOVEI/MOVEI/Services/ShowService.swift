@@ -54,7 +54,47 @@ public final class ShowService: ObservableObject {
     }
 
     public func shows(for movieID: String) -> [Show] {
-        shows.filter { $0.movieID == movieID && $0.status != "cancelled" }
+        let matched = shows.filter { $0.movieID == movieID && $0.status != "cancelled" }
+        if !matched.isEmpty {
+            return matched
+        }
+        return generateDefaultShows(for: movieID)
+    }
+
+    @discardableResult
+    public func generateDefaultShows(for movieID: String) -> [Show] {
+        let calendar = Calendar.current
+        let today = Date()
+        let cinema1 = "cinemax-colombo"
+        let screen1 = "cinemax-s04"
+        let cinema2 = "scope-cinemas"
+        let screen2 = "scope-s02"
+
+        let slots = [
+            (14, 0, cinema1, screen1, 1200.0, 1800.0, 2500.0),
+            (17, 30, cinema2, screen2, 1400.0, 2000.0, 2800.0),
+            (20, 45, cinema1, screen1, 1500.0, 2200.0, 3000.0)
+        ]
+
+        var newShows: [Show] = []
+        for (h, m, cId, sId, pStd, pPrem, pVip) in slots {
+            let start = calendar.date(bySettingHour: h, minute: m, second: 0, of: today) ?? today
+            let end = calendar.date(byAdding: .minute, value: 140, to: start) ?? start
+            let show = Show(
+                id: "show-\(movieID)-\(h)\(m)",
+                movieID: movieID,
+                cinemaID: cId,
+                screenID: sId,
+                startTime: start,
+                endTime: end,
+                priceStandard: pStd,
+                pricePremium: pPrem,
+                priceVIP: pVip
+            )
+            newShows.append(show)
+        }
+        self.shows.append(contentsOf: newShows)
+        return newShows
     }
 
     public func checkCollision(screenID: String, start: Date, end: Date, excludingShowID: String? = nil) -> Bool {

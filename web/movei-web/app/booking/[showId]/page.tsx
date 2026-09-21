@@ -239,7 +239,7 @@ export default function BookingPage({ params }: BookingPageProps) {
             </div>
 
             <p className="text-xs text-gray-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">
-              Your tickets are now available in your MOVEI digital wallet. You can view barcodes, tear for admission, or add them to Apple Wallet.
+              Your digital cinema pass is now active in your MOVEI wallet with all selected seats ready for admission.
             </p>
 
             <div className="flex items-center gap-3 pt-2">

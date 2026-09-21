@@ -134,19 +134,10 @@ export default function TicketPass({ ticket, onTear }: TicketPassProps) {
       >
         <BarcodeView value={ticket.barcode_value || ticket.ticket_code} />
 
-        {/* Pass Actions: Apple Wallet Pass download */}
-        <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
-          <a
-            href={`/api/tickets/${ticket.id}/pass`}
-            download={`${ticket.ticket_code}.pkpass`}
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black hover:bg-neutral-900 border border-white/20 text-[11px] font-medium text-white transition-all hover:scale-[1.02]"
-          >
-            <Smartphone className="w-3.5 h-3.5 text-[#bae861]" />
-            Add to Apple Wallet
-          </a>
-
-          <span className="text-[10px] text-gray-500 font-mono">
+        {/* Pass Actions */}
+        <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-gray-500 font-mono">
+          <span>Digital Cinema Admission</span>
+          <span>
             {isTorn ? 'Status: Admitted' : 'Tap to tear ticket'}
           </span>
         </div>

@@ -22,7 +22,7 @@ public struct AdminDashboardView: View {
                             .tracking(2)
                             .foregroundStyle(AppTheme.muted)
                         Text("Platform Overview")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .font(.system(size: 32, weight: .bold))
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
@@ -52,7 +52,7 @@ public struct AdminDashboardView: View {
                             Divider()
                             AdminModuleRow(title: "Scanner Staff", count: "4 active staff", icon: "qrcode.viewfinder")
                         }
-                        .background(Color.white)
+                        .background(AppTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                     }
                     .padding(.horizontal, 20)
@@ -81,7 +81,7 @@ public struct AdminDashboardView: View {
                                     .foregroundStyle(AppTheme.muted)
                             }
                             .padding(12)
-                            .background(Color.white)
+                            .background(AppTheme.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                         }
                     }
@@ -90,7 +90,7 @@ public struct AdminDashboardView: View {
                 .padding(.bottom, 32)
             }
             .background(AppTheme.canvas.ignoresSafeArea())
-            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 }
@@ -110,14 +110,14 @@ private struct AdminKPICard: View {
                 Spacer()
             }
             Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(AppTheme.ink)
             Text(title)
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(AppTheme.muted)
         }
         .padding(16)
-        .background(Color.white)
+        .background(AppTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .shadow(color: .black.opacity(0.04), radius: 6, y: 3)
     }

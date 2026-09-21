@@ -1,8 +1,8 @@
-import { Movie, Cinema, Show, Booking, Ticket, Profile } from '../types';
+import { Movie, Cinema, Show, Booking, Ticket, Profile, AppAnnouncement } from '../types';
 
 export const MOCK_MOVIES: Movie[] = [
   {
-    id: 'm0000000-0000-0000-0000-000000000000',
+    id: 'm-wicked',
     title: 'Wicked',
     slug: 'wicked',
     tagline: 'Everyone deserves the chance to fly.',
@@ -12,14 +12,14 @@ export const MOCK_MOVIES: Movie[] = [
     trailer_url: 'https://www.youtube.com/watch?v=6COmYeLsz4c',
     runtime_minutes: 160,
     release_date: '2024-11-22',
-    rating: 8.1,
-    genres: ['Fantasy', 'Musical'],
+    rating: 8.5,
+    genres: ['Fantasy', 'Musical', 'Adventure'],
     language: 'English',
     age_rating: 'PG',
     status: 'published'
   },
   {
-    id: 'm1111111-1111-1111-1111-111111111111',
+    id: 'm-inception',
     title: 'Inception',
     slug: 'inception',
     tagline: 'Your mind is the scene of the crime.',
@@ -36,24 +36,7 @@ export const MOCK_MOVIES: Movie[] = [
     status: 'published'
   },
   {
-    id: 'm2222222-2222-2222-2222-222222222222',
-    title: 'Dune: Part Two',
-    slug: 'dune-part-two',
-    tagline: 'Long live the fighters.',
-    description: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the universe, he endeavors to prevent a terrible future only he can foresee.',
-    poster_url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&h=900&q=80',
-    backdrop_url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&h=1080&q=80',
-    trailer_url: 'https://www.youtube.com/watch?v=Way9Dexny3w',
-    runtime_minutes: 166,
-    release_date: '2024-03-01',
-    rating: 8.6,
-    genres: ['Sci-Fi', 'Adventure', 'Action'],
-    language: 'English',
-    age_rating: 'PG-13',
-    status: 'published'
-  },
-  {
-    id: 'm3333333-3333-3333-3333-333333333333',
+    id: 'm-oppenheimer',
     title: 'Oppenheimer',
     slug: 'oppenheimer',
     tagline: 'The world forever changes.',
@@ -70,7 +53,7 @@ export const MOCK_MOVIES: Movie[] = [
     status: 'published'
   },
   {
-    id: 'm4444444-4444-4444-4444-444444444444',
+    id: 'm-interstellar',
     title: 'Interstellar',
     slug: 'interstellar',
     tagline: 'Mankind was born on Earth. It was never meant to die here.',
@@ -87,89 +70,92 @@ export const MOCK_MOVIES: Movie[] = [
     status: 'published'
   },
   {
-    id: 'm5555555-5555-5555-5555-555555555555',
-    title: 'Cyberpunk 2077: No Coincidence',
-    slug: 'cyberpunk-no-coincidence',
-    tagline: 'Night City is waiting for you.',
-    description: 'In the neon-soaked underworld of Night City, a group of disparate strangers find themselves united in a high-stakes heist orchestrated by an unknown contractor.',
-    poster_url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&h=900&q=80',
-    backdrop_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1920&h=1080&q=80',
+    id: 'm-spiderman',
+    title: 'Spider-Man: Brand New Day',
+    slug: 'spider-man--brand-new-day',
+    tagline: 'Even if no one remembers me, I\'ll keep protecting.',
+    description: 'A forgotten Peter Parker lives alone as a full-time Spider-Man until mounting pressure triggers a dangerous change and a powerful new enemy emerges.',
+    poster_url: 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?auto=format&fit=crop&w=600&q=90',
+    backdrop_url: 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?auto=format&fit=crop&w=1800&q=90',
+    trailer_url: '',
+    runtime_minutes: 145,
+    rating: 8.8,
+    release_date: '2026-09-21',
+    genres: ['Action', 'Sci-Fi', 'Superhero'],
+    language: 'English',
+    age_rating: 'PG-13',
+    status: 'published'
+  },
+  {
+    id: 'm-pak',
+    title: 'PAK',
+    slug: 'pak',
+    tagline: 'A new cinematic force begins.',
+    description: 'An intense thrilling odyssey of resilience, courage and unyielding redemption.',
+    poster_url: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=600&q=80',
+    backdrop_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&h=1080&q=80',
     trailer_url: '',
     runtime_minutes: 135,
-    release_date: '2026-11-15',
-    rating: 8.4,
-    genres: ['Action', 'Cyberpunk', 'Sci-Fi'],
+    rating: 8.5,
+    release_date: '2026-09-21',
+    genres: ['Action', 'Thriller'],
     language: 'English',
-    age_rating: 'R',
-    status: 'draft'
+    age_rating: 'PG-13',
+    status: 'published'
   }
 ];
 
 export const MOCK_CINEMAS: Cinema[] = [
   {
-    id: 'c1111111-1111-1111-1111-111111111111',
-    name: 'Colombo City Centre (CCC)',
-    address: '137 Sir James Pieris Mawatha',
-    city: 'Colombo 02',
-    latitude: 6.9177,
-    longitude: 79.8546,
-    phone: '+94 11 208 3000',
+    id: 'cin-01',
+    name: 'Cinemax Colombo',
+    city: 'Colombo',
+    address: '42 Galle Road, Colombo 03',
+    phone: '+94 11 234 5678',
     status: 'active',
     screens: [
       {
         id: 'sc111111-1111-1111-1111-111111111111',
-        cinema_id: 'c1111111-1111-1111-1111-111111111111',
-        name: 'Screen 1 - Dolby Atmos Luxe',
-        screen_number: 1,
-        capacity: 48,
-        screen_type: 'dolby'
-      },
-      {
-        id: 'sc222222-2222-2222-2222-222222222222',
-        cinema_id: 'c1111111-1111-1111-1111-111111111111',
-        name: 'Screen 2 - Laser Standard',
-        screen_number: 2,
-        capacity: 48,
-        screen_type: 'standard'
-      }
-    ]
-  },
-  {
-    id: 'c2222222-2222-2222-2222-222222222222',
-    name: 'Majestic City IMAX',
-    address: '10 Station Road, Bambalapitiya',
-    city: 'Colombo 04',
-    latitude: 6.8942,
-    longitude: 79.8553,
-    phone: '+94 11 258 1111',
-    status: 'active',
-    screens: [
-      {
-        id: 'sc333333-3333-3333-3333-333333333333',
-        cinema_id: 'c2222222-2222-2222-2222-222222222222',
-        name: 'IMAX Grand Screen',
-        screen_number: 1,
-        capacity: 48,
+        cinema_id: 'cin-01',
+        name: 'Screen 04 (IMAX Laser)',
+        screen_number: 4,
+        capacity: 120,
         screen_type: 'imax'
       }
     ]
   },
   {
-    id: 'c3333333-3333-3333-3333-333333333333',
-    name: 'Liberty Cinema Kollupitiya',
-    address: '35 Dharmapala Mawatha',
-    city: 'Colombo 03',
-    latitude: 6.9114,
-    longitude: 79.8519,
-    phone: '+94 11 232 5265',
+    id: 'cin-02',
+    name: 'Majestic Cineplex',
+    city: 'Colombo',
+    address: '10 Station Road, Bambalapitiya',
+    phone: '+94 11 258 1234',
     status: 'active',
     screens: [
       {
-        id: 'sc444444-4444-4444-4444-444444444444',
-        cinema_id: 'c3333333-3333-3333-3333-333333333333',
-        name: 'Liberty Lite Hall',
+        id: 'sc222222-2222-2222-2222-222222222222',
+        cinema_id: 'cin-02',
+        name: 'Screen 01 (Platinum)',
         screen_number: 1,
-        capacity: 48,
+        capacity: 90,
+        screen_type: 'standard'
+      }
+    ]
+  },
+  {
+    id: 'cin-03',
+    name: 'Scope Cinemas Colombo City',
+    city: 'Colombo',
+    address: 'Colombo City Centre, 137 Sir James Pieris Mawatha',
+    phone: '+94 11 777 8899',
+    status: 'active',
+    screens: [
+      {
+        id: 'sc333333-3333-3333-3333-333333333333',
+        cinema_id: 'cin-03',
+        name: 'Screen 02 (Dolby Atmos)',
+        screen_number: 2,
+        capacity: 105,
         screen_type: 'standard'
       }
     ]
@@ -178,181 +164,111 @@ export const MOCK_CINEMAS: Cinema[] = [
 
 export const MOCK_SHOWS: Show[] = [
   {
-    id: 'sh111111-1111-1111-1111-111111111111',
-    movie_id: 'm1111111-1111-1111-1111-111111111111',
-    cinema_id: 'c1111111-1111-1111-1111-111111111111',
+    id: 'sh-wicked-01',
+    movie_id: 'm-wicked',
+    cinema_id: 'cin-01',
     screen_id: 'sc111111-1111-1111-1111-111111111111',
-    start_time: new Date(Date.now() + 3600 * 1000 * 4).toISOString(), // 4 hours from now
-    end_time: new Date(Date.now() + 3600 * 1000 * 6.5).toISOString(),
+    start_time: '2026-09-22T14:00:00Z',
+    end_time: '2026-09-22T16:40:00Z',
     price_standard: 1200,
     price_premium: 1800,
     price_vip: 2500,
     status: 'scheduled',
     movie: MOCK_MOVIES[0],
     cinema: MOCK_CINEMAS[0],
-    screen: MOCK_CINEMAS[0].screens?.[0]
+    screen: MOCK_CINEMAS[0].screens![0]
   },
   {
-    id: 'sh222222-2222-2222-2222-222222222222',
-    movie_id: 'm1111111-1111-1111-1111-111111111111',
-    cinema_id: 'c1111111-1111-1111-1111-111111111111',
+    id: 'sh-spiderman-01',
+    movie_id: 'm-spiderman',
+    cinema_id: 'cin-01',
     screen_id: 'sc111111-1111-1111-1111-111111111111',
-    start_time: new Date(Date.now() + 3600 * 1000 * 8).toISOString(), // 8 hours from now
-    end_time: new Date(Date.now() + 3600 * 1000 * 10.5).toISOString(),
-    price_standard: 1200,
-    price_premium: 1800,
-    price_vip: 2500,
+    start_time: '2026-09-22T17:30:00Z',
+    end_time: '2026-09-22T20:00:00Z',
+    price_standard: 1400,
+    price_premium: 2000,
+    price_vip: 2800,
     status: 'scheduled',
-    movie: MOCK_MOVIES[0],
+    movie: MOCK_MOVIES[4],
     cinema: MOCK_CINEMAS[0],
-    screen: MOCK_CINEMAS[0].screens?.[0]
+    screen: MOCK_CINEMAS[0].screens![0]
   },
   {
-    id: 'sh333333-3333-3333-3333-333333333333',
-    movie_id: 'm2222222-2222-2222-2222-222222222222',
-    cinema_id: 'c2222222-2222-2222-2222-222222222222',
+    id: 'sh-inception-01',
+    movie_id: 'm-inception',
+    cinema_id: 'cin-02',
+    screen_id: 'sc222222-2222-2222-2222-222222222222',
+    start_time: '2026-09-22T19:00:00Z',
+    end_time: '2026-09-22T21:30:00Z',
+    price_standard: 1000,
+    price_premium: 1500,
+    price_vip: 2200,
+    status: 'scheduled',
+    movie: MOCK_MOVIES[1],
+    cinema: MOCK_CINEMAS[1],
+    screen: MOCK_CINEMAS[1].screens![0]
+  },
+  {
+    id: 'sh-oppenheimer-01',
+    movie_id: 'm-oppenheimer',
+    cinema_id: 'cin-03',
     screen_id: 'sc333333-3333-3333-3333-333333333333',
-    start_time: new Date(Date.now() + 3600 * 1000 * 5).toISOString(),
-    end_time: new Date(Date.now() + 3600 * 1000 * 8).toISOString(),
+    start_time: '2026-09-22T20:00:00Z',
+    end_time: '2026-09-22T23:00:00Z',
     price_standard: 1500,
     price_premium: 2200,
     price_vip: 3000,
     status: 'scheduled',
-    movie: MOCK_MOVIES[1],
-    cinema: MOCK_CINEMAS[1],
-    screen: MOCK_CINEMAS[1].screens?.[0]
-  },
-  {
-    id: 'sh444444-4444-4444-4444-444444444444',
-    movie_id: 'm3333333-3333-3333-3333-333333333333',
-    cinema_id: 'c1111111-1111-1111-1111-111111111111',
-    screen_id: 'sc222222-2222-2222-2222-222222222222',
-    start_time: new Date(Date.now() + 3600 * 1000 * 6).toISOString(),
-    end_time: new Date(Date.now() + 3600 * 1000 * 9).toISOString(),
-    price_standard: 1200,
-    price_premium: 1800,
-    price_vip: 2500,
-    status: 'scheduled',
     movie: MOCK_MOVIES[2],
-    cinema: MOCK_CINEMAS[0],
-    screen: MOCK_CINEMAS[0].screens?.[1]
+    cinema: MOCK_CINEMAS[2],
+    screen: MOCK_CINEMAS[2].screens![0]
+  },
+  {
+    id: 'sh-interstellar-01',
+    movie_id: 'm-interstellar',
+    cinema_id: 'cin-03',
+    screen_id: 'sc333333-3333-3333-3333-333333333333',
+    start_time: '2026-09-23T15:00:00Z',
+    end_time: '2026-09-23T17:50:00Z',
+    price_standard: 1500,
+    price_premium: 2200,
+    price_vip: 3000,
+    status: 'scheduled',
+    movie: MOCK_MOVIES[3],
+    cinema: MOCK_CINEMAS[2],
+    screen: MOCK_CINEMAS[2].screens![0]
+  },
+  {
+    id: 'sh-pak-01',
+    movie_id: 'm-pak',
+    cinema_id: 'cin-02',
+    screen_id: 'sc222222-2222-2222-2222-222222222222',
+    start_time: '2026-09-23T18:00:00Z',
+    end_time: '2026-09-23T20:15:00Z',
+    price_standard: 1100,
+    price_premium: 1600,
+    price_vip: 2400,
+    status: 'scheduled',
+    movie: MOCK_MOVIES[5],
+    cinema: MOCK_CINEMAS[1],
+    screen: MOCK_CINEMAS[1].screens![0]
   }
 ];
 
-export const MOCK_PROFILES: Profile[] = [
-  {
-    id: 'u1111111-1111-1111-1111-111111111111',
-    email: 'customer@movei.io',
-    full_name: 'Alex Mercer',
-    role: 'customer'
-  },
-  {
-    id: 'u2222222-2222-2222-2222-222222222222',
-    email: 'admin@movei.io',
-    full_name: 'Elena Vance (Manager)',
-    role: 'admin'
-  },
-  {
-    id: 'u3333333-3333-3333-3333-333333333333',
-    email: 'scanner@movei.io',
-    full_name: 'Marcus Brody (Gate 1 Staff)',
-    role: 'scanner'
-  }
-];
+export const MOCK_USERS: Profile[] = [];
 
-export const MOCK_TICKETS: Ticket[] = [
+export const MOCK_TICKETS: Ticket[] = [];
+
+export const MOCK_BOOKINGS: Booking[] = [];
+
+export const MOCK_ANNOUNCEMENTS: AppAnnouncement[] = [
   {
-    id: 'tk-101',
-    booking_id: 'bk-001',
-    show_id: 'sh111111-1111-1111-1111-111111111111',
-    user_id: 'u1111111-1111-1111-1111-111111111111',
-    seat_id: 'st-f5',
-    ticket_code: 'MOV-INCEPT-01',
-    barcode_value: 'MOV-INCEPT-01',
-    status: 'confirmed',
-    seat: {
-      id: 'st-f5',
-      screen_id: 'sc111111-1111-1111-1111-111111111111',
-      row_label: 'F',
-      seat_number: 5,
-      seat_type: 'premium',
-      x_position: 5,
-      y_position: 6,
-      is_active: true
-    },
-    show: MOCK_SHOWS[0],
+    id: 'ann-01',
+    title: 'Brand New MOVEI Cinema System Live',
+    message: 'Featuring Wicked, Inception, Oppenheimer, Interstellar, Spider-Man, and PAK.',
+    type: 'promo',
+    is_active: true,
+    priority: 'high',
     created_at: new Date().toISOString()
-  },
-  {
-    id: 'tk-102',
-    booking_id: 'bk-001',
-    show_id: 'sh111111-1111-1111-1111-111111111111',
-    user_id: 'u1111111-1111-1111-1111-111111111111',
-    seat_id: 'st-f6',
-    ticket_code: 'MOV-INCEPT-02',
-    barcode_value: 'MOV-INCEPT-02',
-    status: 'confirmed',
-    seat: {
-      id: 'st-f6',
-      screen_id: 'sc111111-1111-1111-1111-111111111111',
-      row_label: 'F',
-      seat_number: 6,
-      seat_type: 'premium',
-      x_position: 6,
-      y_position: 6,
-      is_active: true
-    },
-    show: MOCK_SHOWS[0],
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'tk-103',
-    booking_id: 'bk-002',
-    show_id: 'sh333333-3333-3333-3333-333333333333',
-    user_id: 'u1111111-1111-1111-1111-111111111111',
-    seat_id: 'st-d8',
-    ticket_code: 'MOV-DUNE-88',
-    barcode_value: 'MOV-DUNE-88',
-    status: 'used',
-    scanned_at: new Date(Date.now() - 3600 * 1000 * 24).toISOString(),
-    seat: {
-      id: 'st-d8',
-      screen_id: 'sc333333-3333-3333-3333-333333333333',
-      row_label: 'D',
-      seat_number: 8,
-      seat_type: 'vip',
-      x_position: 8,
-      y_position: 4,
-      is_active: true
-    },
-    show: MOCK_SHOWS[2],
-    created_at: new Date(Date.now() - 3600 * 1000 * 25).toISOString()
-  }
-];
-
-export const MOCK_BOOKINGS: Booking[] = [
-  {
-    id: 'bk-001',
-    user_id: 'u1111111-1111-1111-1111-111111111111',
-    show_id: 'sh111111-1111-1111-1111-111111111111',
-    booking_reference: 'MOV-INCEPT-982',
-    total_amount: 3600,
-    currency: 'LKR',
-    status: 'confirmed',
-    created_at: new Date().toISOString(),
-    show: MOCK_SHOWS[0],
-    tickets: [MOCK_TICKETS[0], MOCK_TICKETS[1]]
-  },
-  {
-    id: 'bk-002',
-    user_id: 'u1111111-1111-1111-1111-111111111111',
-    show_id: 'sh333333-3333-3333-3333-333333333333',
-    booking_reference: 'MOV-DUNE2-441',
-    total_amount: 3000,
-    currency: 'LKR',
-    status: 'completed',
-    created_at: new Date(Date.now() - 3600 * 1000 * 25).toISOString(),
-    show: MOCK_SHOWS[2],
-    tickets: [MOCK_TICKETS[2]]
   }
 ];

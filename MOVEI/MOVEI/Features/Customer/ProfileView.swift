@@ -8,6 +8,8 @@ import SwiftUI
 public struct ProfileView: View {
     @ObservedObject private var auth = AuthService.shared
     @ObservedObject private var ticketService = TicketService.shared
+    @ObservedObject private var movieService = MovieService.shared
+    @State private var showWatchedSheet = false
 
     public init() {}
 
@@ -27,7 +29,7 @@ public struct ProfileView: View {
                         }
 
                         VStack(spacing: 4) {
-                            Text(auth.currentUser?.fullName ?? "Movie Fan")
+                            Text(auth.currentUser?.fullName ?? "Customer")
                                 .font(.title3.weight(.bold))
 
                             HStack(spacing: 6) {
@@ -36,7 +38,7 @@ public struct ProfileView: View {
                             }
                             .font(.system(size: 10, weight: .black))
                             .tracking(1.4)
-                            .foregroundStyle(AppTheme.ink)
+                            .foregroundStyle(.black)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
                             .background(AppTheme.lime, in: Capsule())
@@ -47,8 +49,88 @@ public struct ProfileView: View {
                     // Stats row
                     HStack(spacing: 12) {
                         ProfileStatTile(value: "\(ticketService.upcomingTickets.count)", title: "Active Passes")
-                        ProfileStatTile(value: "\(ticketService.watchedTickets.count)", title: "Watched")
+                        Button {
+                            showWatchedSheet = true
+                        } label: {
+                            ProfileStatTile(value: "\(ticketService.watchedTickets.count)", title: "Watched ↗")
+                        }
+                        .buttonStyle(.plain)
                         ProfileStatTile(value: "3", title: "Cinemas")
+                    }
+                    .padding(.horizontal, 20)
+
+                    // Admin Studio Sync Status & Control
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("WEB ADMIN STUDIO SYNC")
+                            .font(.caption.weight(.bold))
+                            .tracking(1.4)
+                            .foregroundStyle(AppTheme.muted)
+
+                        VStack(spacing: 14) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Admin Connection")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(AppTheme.ink)
+                                    Text(movieService.syncStatusMessage)
+                                        .font(.caption)
+                                        .foregroundStyle(AppTheme.muted)
+                                }
+                                Spacer()
+                                Circle()
+                                    .fill(movieService.isLoading ? Color.orange : AppTheme.lime)
+                                    .frame(width: 10, height: 10)
+                            }
+
+                            Divider()
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Active Host")
+                                    .font(.caption2.weight(.bold))
+                                    .foregroundStyle(AppTheme.muted)
+                                TextField("e.g. Sandews-MacBook-Air.local:3000", text: $movieService.customServerHost)
+                                    .font(.system(size: 13, design: .monospaced))
+                                    .padding(10)
+                                    .background(AppTheme.canvas)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+
+                            Button {
+                                Task {
+                                    await movieService.fetchMoviesFromBackend()
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: movieService.isLoading ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
+                                    Text(movieService.isLoading ? "Syncing with Admin..." : "Sync Movies Now (\(movieService.publishedMovies.count) Live)")
+                                }
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(.black)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(AppTheme.lime)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+
+                            Button {
+                                movieService.clearCacheAndReload()
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "trash")
+                                    Text("Clear Cache & Reload")
+                                }
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(AppTheme.muted)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 36)
+                                .background(AppTheme.canvas)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                        }
+                        .padding(16)
+                        .background(AppTheme.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
                     }
                     .padding(.horizontal, 20)
 
@@ -66,7 +148,7 @@ public struct ProfileView: View {
                             Divider()
                             RoleRow(title: "Platform Administrator", subtitle: "KPIs, movie publishing, shows, cinemas", role: .admin, current: auth.currentRole)
                         }
-                        .background(Color.white)
+                        .background(AppTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                     }
                     .padding(.horizontal, 20)
@@ -80,16 +162,19 @@ public struct ProfileView: View {
                             .foregroundStyle(AppTheme.danger)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
-                            .background(Color.white)
+                            .background(AppTheme.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
                 }
-                .padding(.bottom, 32)
+                .padding(.bottom, 110)
             }
             .background(AppTheme.canvas.ignoresSafeArea())
             .navigationTitle("Profile")
+            .sheet(isPresented: $showWatchedSheet) {
+                WatchedView()
+            }
         }
     }
 }
@@ -109,7 +194,7 @@ private struct ProfileStatTile: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
-        .background(Color.white)
+        .background(AppTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 }
@@ -122,7 +207,7 @@ private struct RoleRow: View {
 
     var body: some View {
         Button {
-            AuthService.shared.switchDemoRole(to: role)
+            AuthService.shared.updateRole(to: role)
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {

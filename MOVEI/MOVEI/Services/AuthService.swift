@@ -11,92 +11,96 @@ public final class AuthService: ObservableObject {
     public static let shared = AuthService()
 
     @Published public var currentUser: Profile?
+    @Published public var currentUserEmail: String = ""
     @Published public var isAuthenticated: Bool = false
     @Published public var currentRole: UserRole = .customer
     @Published public var isLoading: Bool = false
     @Published public var errorMessage: String?
 
     private init() {
-        // Automatically restore session or initialize demo customer
+        // Clear previous legacy session to start brand new
+        UserDefaults.standard.removeObject(forKey: "movei_cached_profile")
         loadSavedUser()
     }
 
     private func loadSavedUser() {
-        if let data = UserDefaults.standard.data(forKey: "movei_cached_profile"),
+        if let data = UserDefaults.standard.data(forKey: "movei_cached_profile_v2"),
            let profile = try? JSONDecoder().decode(Profile.self, from: data) {
             self.currentUser = profile
+            self.currentUserEmail = UserDefaults.standard.string(forKey: "movei_cached_email") ?? ""
             self.currentRole = profile.role
             self.isAuthenticated = true
         } else {
-            // Default initial state: Customer (Sandew)
-            let defaultCustomer = Profile(
-                id: UUID(uuidString: "11111111-2222-3333-4444-555555555555")!,
-                fullName: "Sandew",
-                avatarURL: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
-                phone: "+94 77 123 4567",
-                role: .customer
-            )
-            self.currentUser = defaultCustomer
+            // Brand new system starts unauthenticated on Login screen
+            self.currentUser = nil
+            self.currentUserEmail = ""
+            self.isAuthenticated = false
             self.currentRole = .customer
-            self.isAuthenticated = true
         }
     }
 
-    public func signIn(email: String, password: String) async -> Bool {
+    public func signIn(email: String, password: String, role: UserRole? = nil) async -> Bool {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
-        // In a live Supabase configuration with auth endpoint:
-        // Here we validate and assign roles based on credentials or demo shortcuts
-        try? await Task.sleep(for: .milliseconds(400))
+        try? await Task.sleep(for: .milliseconds(300))
 
-        let role: UserRole
+        let determinedRole: UserRole
         let name: String
-        if email.lowercased().contains("admin") {
-            role = .admin
-            name = "Cinema Director (Admin)"
+        if let role = role {
+            determinedRole = role
+            name = email.components(separatedBy: "@").first?.capitalized ?? role.title
+        } else if email.lowercased().contains("admin") {
+            determinedRole = .admin
+            name = "Cinema Admin"
         } else if email.lowercased().contains("scanner") || email.lowercased().contains("staff") {
-            role = .scanner
-            name = "Staff Scanner (Entrance 04)"
+            determinedRole = .scanner
+            name = "Staff Scanner"
         } else {
-            role = .customer
-            name = email.components(separatedBy: "@").first?.capitalized ?? "Movie Fan"
+            determinedRole = .customer
+            name = email.components(separatedBy: "@").first?.capitalized ?? "Customer"
         }
 
-        let profile = Profile(id: UUID(), fullName: name, avatarURL: nil, phone: nil, role: role)
+        let profile = Profile(id: UUID(), fullName: name, role: determinedRole)
+        self.currentUserEmail = email
+        UserDefaults.standard.set(email, forKey: "movei_cached_email")
         saveProfile(profile)
+        await syncUserToBackend(profile: profile, email: email)
         return true
     }
 
-    public func register(fullName: String, email: String, password: String) async -> Bool {
+    public func register(fullName: String, email: String, password: String, role: UserRole = .customer) async -> Bool {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
-        try? await Task.sleep(for: .milliseconds(400))
-        let profile = Profile(id: UUID(), fullName: fullName, role: .customer)
+        try? await Task.sleep(for: .milliseconds(300))
+        let profile = Profile(id: UUID(), fullName: fullName, role: role)
+        self.currentUserEmail = email
+        UserDefaults.standard.set(email, forKey: "movei_cached_email")
         saveProfile(profile)
+        await syncUserToBackend(profile: profile, email: email)
         return true
     }
 
-    public func switchDemoRole(to role: UserRole) {
-        let name: String
-        switch role {
-        case .customer: name = "Sandew (Customer)"
-        case .scanner: name = "Gate Scanner 04 (Staff)"
-        case .admin: name = "Cinema Admin"
-        }
-        let profile = Profile(id: UUID(), fullName: name, role: role)
+    public func updateRole(to role: UserRole) {
+        guard var profile = currentUser else { return }
+        profile.role = role
         saveProfile(profile)
+        Task {
+            await syncUserToBackend(profile: profile, email: currentUserEmail)
+        }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 
     public func signOut() {
         currentUser = nil
+        currentUserEmail = ""
         isAuthenticated = false
         currentRole = .customer
-        UserDefaults.standard.removeObject(forKey: "movei_cached_profile")
+        UserDefaults.standard.removeObject(forKey: "movei_cached_profile_v2")
+        UserDefaults.standard.removeObject(forKey: "movei_cached_email")
         SupabaseManager.shared.clearSession()
     }
 
@@ -105,7 +109,36 @@ public final class AuthService: ObservableObject {
         self.currentRole = profile.role
         self.isAuthenticated = true
         if let data = try? JSONEncoder().encode(profile) {
-            UserDefaults.standard.set(data, forKey: "movei_cached_profile")
+            UserDefaults.standard.set(data, forKey: "movei_cached_profile_v2")
+        }
+    }
+
+    private func syncUserToBackend(profile: Profile, email: String) async {
+        let baseURL = MovieService.shared.activeBaseURL
+        guard let url = URL(string: "\(baseURL)/api/users") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 4.0
+
+        let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let payload: [String: Any] = [
+            "id": profile.id.uuidString,
+            "name": profile.fullName,
+            "email": cleanEmail.isEmpty ? "\(profile.role.rawValue)@movei.app" : cleanEmail,
+            "role": profile.role.rawValue,
+            "device": "iOS App"
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) {
+                print("[AuthService] Synced user \(cleanEmail) to Web Admin")
+            }
+        } catch {
+            print("[AuthService] Note: User registered locally; backend sync skipped (\(error.localizedDescription))")
         }
     }
 }

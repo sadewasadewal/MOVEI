@@ -28,7 +28,7 @@ public struct MoviesView: View {
                     // Header & Search
                     VStack(alignment: .leading, spacing: 14) {
                         Text("Explore Movies")
-                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .font(.system(size: 34, weight: .bold))
 
                         HStack(spacing: 10) {
                             Image(systemName: "magnifyingglass")
@@ -36,7 +36,7 @@ public struct MoviesView: View {
                             TextField("Search movies, genres...", text: $search)
                         }
                         .padding(14)
-                        .background(Color.white)
+                        .background(AppTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .padding(.horizontal, 20)
@@ -73,10 +73,16 @@ public struct MoviesView: View {
                         .padding(.horizontal, 20)
                     }
                 }
-                .padding(.bottom, 32)
+                .padding(.bottom, 110)
             }
             .background(AppTheme.canvas.ignoresSafeArea())
-            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
+            .refreshable {
+                await movieService.fetchMoviesFromBackend()
+            }
+            .task {
+                await movieService.fetchMoviesFromBackend()
+            }
         }
     }
 }
@@ -92,10 +98,10 @@ public struct HeroCard: View {
 
     public var body: some View {
         ZStack(alignment: .bottomLeading) {
-            AsyncImage(url: URL(string: movie.backdropURL)) { image in
+            RobustAsyncImage(candidateURLs: [movie.resolvedBackdropURL, movie.resolvedPosterURL].compactMap { $0 }) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
-                Rectangle().fill(movie.accent)
+                Rectangle().fill(AppTheme.passBackground)
             }
             .frame(height: 240)
             .clipped()
@@ -117,7 +123,7 @@ public struct HeroCard: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
                         .background(AppTheme.lime)
-                        .foregroundStyle(AppTheme.ink)
+                        .foregroundStyle(.black)
                         .clipShape(Capsule())
                 }
                 .padding(.top, 4)
@@ -138,10 +144,10 @@ public struct MovieGridCard: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            AsyncImage(url: URL(string: movie.posterURL)) { image in
+            RobustAsyncImage(candidateURLs: [movie.resolvedPosterURL, movie.resolvedBackdropURL].compactMap { $0 }) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
-                Rectangle().fill(movie.accent)
+                Rectangle().fill(AppTheme.passBackground)
             }
             .frame(height: 220)
             .clipShape(RoundedRectangle(cornerRadius: 16))

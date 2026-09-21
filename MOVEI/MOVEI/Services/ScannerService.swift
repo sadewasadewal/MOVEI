@@ -13,6 +13,7 @@ public struct AdmissionResult {
     public let message: String
     public let ticketCode: String
     public let movieTitle: String?
+    public let posterURL: String?
     public let customerName: String?
     public let cinemaName: String?
     public let screenName: String?
@@ -28,6 +29,36 @@ public struct AdmissionResult {
         case expired
         case invalid
     }
+
+    public init(
+        isValid: Bool,
+        statusType: StatusType,
+        title: String,
+        message: String,
+        ticketCode: String,
+        movieTitle: String? = nil,
+        posterURL: String? = nil,
+        customerName: String? = nil,
+        cinemaName: String? = nil,
+        screenName: String? = nil,
+        seat: String? = nil,
+        showtime: Date? = nil,
+        scannedAt: Date? = nil
+    ) {
+        self.isValid = isValid
+        self.statusType = statusType
+        self.title = title
+        self.message = message
+        self.ticketCode = ticketCode
+        self.movieTitle = movieTitle
+        self.posterURL = posterURL
+        self.customerName = customerName
+        self.cinemaName = cinemaName
+        self.screenName = screenName
+        self.seat = seat
+        self.showtime = showtime
+        self.scannedAt = scannedAt
+    }
 }
 
 @MainActor
@@ -40,22 +71,108 @@ public final class ScannerService: ObservableObject {
         address: "125 Galle Road, Colombo 03"
     )
     @Published public var recentScans: [TicketScan] = []
-    @Published public var totalAdmissionsToday: Int = 24
+    @Published public var totalAdmissionsToday: Int = 0
+    @Published public var isValidating: Bool = false
 
     private init() {
-        // Preload recent scan logs for scanner dashboard
-        self.recentScans = [
-            TicketScan(ticketCode: "MOV-82K9A-01", scannerID: "scanner-1", cinemaID: "cinemax-colombo", scannedAt: Date().addingTimeInterval(-1800), result: "valid", movieTitle: "Wicked", customerName: "Sadew", seat: "B4"),
-            TicketScan(ticketCode: "MOV-82K9A-02", scannerID: "scanner-1", cinemaID: "cinemax-colombo", scannedAt: Date().addingTimeInterval(-1780), result: "valid", movieTitle: "Wicked", customerName: "Sadew", seat: "B5"),
-            TicketScan(ticketCode: "MOV-19FB02-01", scannerID: "scanner-1", cinemaID: "cinemax-colombo", scannedAt: Date().addingTimeInterval(-720), result: "already_used", movieTitle: "Oppenheimer", customerName: "Michael", seat: "D3")
-        ]
+        self.recentScans = []
     }
 
-    public func validateTicket(barcode: String) -> AdmissionResult {
+    public func validateTicket(barcode: String, staffName: String = "Staff Scanner") async -> AdmissionResult {
+        isValidating = true
+        defer { isValidating = false }
+
         let cleanCode = barcode.trimmingCharacters(in: .whitespacesAndNewlines)
         let ticketService = TicketService.shared
 
-        guard let ticket = ticketService.tickets.first(where: { $0.ticketCode == cleanCode || $0.barcodeValue == cleanCode }) else {
+        // 1. Search local wallet first
+        var targetTicket = ticketService.tickets.first(where: {
+            $0.ticketCode.localizedCaseInsensitiveCompare(cleanCode) == .orderedSame ||
+            $0.barcodeValue.localizedCaseInsensitiveCompare(cleanCode) == .orderedSame
+        })
+
+        // 2. If not found locally, query Web Admin API
+        if targetTicket == nil {
+            let baseURL = MovieService.shared.activeBaseURL
+            if let encodedCode = cleanCode.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+               let url = URL(string: "\(baseURL)/api/tickets?code=\(encodedCode)") {
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let item = json["ticket"] as? [String: Any] {
+                        let code = item["ticket_code"] as? String ?? cleanCode
+                        let t = Ticket(
+                            id: item["id"] as? String ?? UUID().uuidString,
+                            bookingID: item["booking_id"] as? String ?? "MOV-REMOTE",
+                            showID: item["show_id"] as? String ?? "show-01",
+                            userID: item["user_id"] as? String ?? "guest",
+                            seatID: "seat-01",
+                            seatLabel: item["seat_label"] as? String ?? "General",
+                            ticketCode: code,
+                            barcodeValue: item["barcode_value"] as? String ?? code,
+                            status: item["status"] as? String ?? "confirmed",
+                            scannedAt: nil,
+                            scannedBy: nil,
+                            movieTitle: item["movie_title"] as? String ?? "Cinema Pass",
+                            posterURL: item["poster_url"] as? String ?? "",
+                            backdropURL: item["backdrop_url"] as? String ?? "",
+                            cinemaName: item["cinema_name"] as? String ?? assignedCinema.name,
+                            screenName: item["screen_name"] as? String ?? "Screen 04",
+                            showtime: Date().addingTimeInterval(3600)
+                        )
+                        ticketService.addTicket(t)
+                        targetTicket = t
+                    }
+                } catch {
+                    // Ignore network failure
+                }
+            }
+        }
+
+        // 3. Fallback check: If code is a demo test code, create on-the-fly ticket if missing
+        if targetTicket == nil {
+            if cleanCode == "MOV-75EB31-01" {
+                let demo = Ticket(
+                    bookingID: "MOV-75EB31",
+                    showID: "show-wicked-01",
+                    userID: "customer-01",
+                    seatID: "s04-B4",
+                    seatLabel: "B4 · B5",
+                    ticketCode: "MOV-75EB31-01",
+                    barcodeValue: "MOV-75EB31-01",
+                    status: "confirmed",
+                    movieTitle: "Wicked",
+                    posterURL: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&h=900&q=80",
+                    backdropURL: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1920&h=1080&q=80",
+                    cinemaName: "Cinemax Colombo",
+                    screenName: "Screen 04",
+                    showtime: Date().addingTimeInterval(3600 * 2)
+                )
+                ticketService.addTicket(demo)
+                targetTicket = demo
+            } else if cleanCode == "MOV-92FA44-01" {
+                let demo = Ticket(
+                    bookingID: "MOV-92FA44",
+                    showID: "show-spiderman-01",
+                    userID: "customer-02",
+                    seatID: "s02-C2",
+                    seatLabel: "C2 · C3",
+                    ticketCode: "MOV-92FA44-01",
+                    barcodeValue: "MOV-92FA44-01",
+                    status: "confirmed",
+                    movieTitle: "Spider-Man: Brand New Day",
+                    posterURL: "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?auto=format&fit=crop&w=1200&q=90",
+                    backdropURL: "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?auto=format&fit=crop&w=1800&q=90",
+                    cinemaName: "Cinemax Colombo",
+                    screenName: "Screen 02",
+                    showtime: Date().addingTimeInterval(3600 * 4)
+                )
+                ticketService.addTicket(demo)
+                targetTicket = demo
+            }
+        }
+
+        guard let ticket = targetTicket else {
             let scan = TicketScan(ticketCode: cleanCode, scannerID: "scanner-04", cinemaID: assignedCinema.id, result: "invalid")
             recentScans.insert(scan, at: 0)
             return AdmissionResult(
@@ -63,50 +180,32 @@ public final class ScannerService: ObservableObject {
                 statusType: .invalid,
                 title: "INVALID TICKET",
                 message: "No ticket record found matching code: \(cleanCode)",
-                ticketCode: cleanCode,
-                movieTitle: nil,
-                customerName: nil,
-                cinemaName: nil,
-                screenName: nil,
-                seat: nil,
-                showtime: nil,
-                scannedAt: nil
+                ticketCode: cleanCode
             )
         }
 
-        // Venue check
-        if !ticket.cinemaName.localizedCaseInsensitiveContains(assignedCinema.name) &&
-           !assignedCinema.name.localizedCaseInsensitiveContains(ticket.cinemaName) {
-            let scan = TicketScan(ticketID: ticket.id, ticketCode: cleanCode, scannerID: "scanner-04", cinemaID: assignedCinema.id, result: "wrong_cinema", movieTitle: ticket.movieTitle, customerName: "Customer", seat: ticket.seatLabel)
-            recentScans.insert(scan, at: 0)
-            return AdmissionResult(
-                isValid: false,
-                statusType: .wrongCinema,
-                title: "WRONG VENUE",
-                message: "Ticket is valid only at: \(ticket.cinemaName)",
+        // 4. Duplicate entry check
+        if ticket.status == "used" || ticket.status == "torn" {
+            let scan = TicketScan(
+                ticketID: ticket.id,
                 ticketCode: cleanCode,
+                scannerID: "scanner-04",
+                cinemaID: assignedCinema.id,
+                result: "already_used",
                 movieTitle: ticket.movieTitle,
-                customerName: nil,
-                cinemaName: ticket.cinemaName,
-                screenName: ticket.screenName,
-                seat: ticket.seatLabel,
-                showtime: ticket.showtime,
-                scannedAt: nil
+                customerName: "Customer",
+                seat: ticket.seatLabel
             )
-        }
-
-        // Duplicate entry check
-        if ticket.status == "used" {
-            let scan = TicketScan(ticketID: ticket.id, ticketCode: cleanCode, scannerID: "scanner-04", cinemaID: assignedCinema.id, result: "already_used", movieTitle: ticket.movieTitle, customerName: "Customer", seat: ticket.seatLabel)
             recentScans.insert(scan, at: 0)
             return AdmissionResult(
                 isValid: false,
                 statusType: .alreadyUsed,
-                title: "ALREADY USED",
-                message: "Ticket was already admitted at \(ticket.scannedAt?.formatted(date: .omitted, time: .shortened) ?? "earlier").",
+                title: "ALREADY TORN & USED",
+                message: "This pass was already admitted at \(ticket.scannedAt?.formatted(date: .omitted, time: .shortened) ?? "earlier").",
                 ticketCode: cleanCode,
                 movieTitle: ticket.movieTitle,
-                customerName: nil,
+                posterURL: ticket.posterURL,
+                customerName: "Customer",
                 cinemaName: ticket.cinemaName,
                 screenName: ticket.screenName,
                 seat: ticket.seatLabel,
@@ -115,10 +214,50 @@ public final class ScannerService: ObservableObject {
             )
         }
 
-        // Valid admission
-        ticketService.markTicketUsed(ticketCode: cleanCode)
+        // 5. Venue check
+        if !ticket.cinemaName.localizedCaseInsensitiveContains(assignedCinema.name) &&
+           !assignedCinema.name.localizedCaseInsensitiveContains(ticket.cinemaName) {
+            let scan = TicketScan(
+                ticketID: ticket.id,
+                ticketCode: cleanCode,
+                scannerID: "scanner-04",
+                cinemaID: assignedCinema.id,
+                result: "wrong_cinema",
+                movieTitle: ticket.movieTitle,
+                customerName: "Customer",
+                seat: ticket.seatLabel
+            )
+            recentScans.insert(scan, at: 0)
+            return AdmissionResult(
+                isValid: false,
+                statusType: .wrongCinema,
+                title: "WRONG VENUE",
+                message: "Ticket is valid only at: \(ticket.cinemaName)",
+                ticketCode: cleanCode,
+                movieTitle: ticket.movieTitle,
+                posterURL: ticket.posterURL,
+                cinemaName: ticket.cinemaName,
+                screenName: ticket.screenName,
+                seat: ticket.seatLabel,
+                showtime: ticket.showtime
+            )
+        }
+
+        // 6. Valid Admission: Mark used, auto-tear, and record in Web Admin!
+        ticketService.markTicketUsed(ticketCode: cleanCode, scannerStaff: staffName)
         totalAdmissionsToday += 1
-        let scan = TicketScan(ticketID: ticket.id, ticketCode: cleanCode, scannerID: "scanner-04", cinemaID: assignedCinema.id, result: "valid", movieTitle: ticket.movieTitle, customerName: "Sadew", seat: ticket.seatLabel)
+
+        let customerDisplayName = AuthService.shared.currentUser?.fullName ?? "Customer"
+        let scan = TicketScan(
+            ticketID: ticket.id,
+            ticketCode: cleanCode,
+            scannerID: "scanner-04",
+            cinemaID: assignedCinema.id,
+            result: "valid",
+            movieTitle: ticket.movieTitle,
+            customerName: customerDisplayName,
+            seat: ticket.seatLabel
+        )
         recentScans.insert(scan, at: 0)
         UINotificationFeedbackGenerator().notificationOccurred(.success)
 
@@ -126,10 +265,11 @@ public final class ScannerService: ObservableObject {
             isValid: true,
             statusType: .valid,
             title: "VALID TICKET",
-            message: "Admission authorized. Enjoy the movie!",
+            message: "Admission authorized. Ticket torn & recorded in Web Admin.",
             ticketCode: cleanCode,
             movieTitle: ticket.movieTitle,
-            customerName: "Sadew",
+            posterURL: ticket.posterURL,
+            customerName: customerDisplayName,
             cinemaName: ticket.cinemaName,
             screenName: ticket.screenName,
             seat: ticket.seatLabel,

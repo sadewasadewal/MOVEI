@@ -78,32 +78,44 @@ public final class BookingService: ObservableObject {
             return (false, [], payment.errorMessage ?? "Payment failed.")
         }
 
-        var createdTickets: [Ticket] = []
-        for (index, seat) in seats.enumerated() {
-            let code = "\(bookingRef)-\(String(format: "%02d", index + 1))"
-            let ticket = Ticket(
-                bookingID: bookingRef,
-                showID: show.id,
-                userID: userID,
-                seatID: seat.id,
-                seatLabel: seat.label,
-                ticketCode: code,
-                barcodeValue: code,
-                status: "confirmed",
-                movieTitle: movie.title,
-                posterURL: movie.posterURL,
-                backdropURL: movie.backdropURL,
-                cinemaName: cinema.name,
-                screenName: screen.name,
-                showtime: show.startTime
-            )
-            createdTickets.append(ticket)
+        // Combine all selected seats into one unified pass
+        let sortedSeats = seats.sorted {
+            if $0.rowLabel != $1.rowLabel {
+                return $0.rowLabel < $1.rowLabel
+            }
+            return $0.seatNumber < $1.seatNumber
+        }
+        let combinedSeatLabels = sortedSeats.map { $0.label }.joined(separator: " · ")
+        let combinedSeatIDs = sortedSeats.map { $0.id }.joined(separator: ",")
+        let code = "\(bookingRef)-01"
+        let resolvedPoster = movie.resolvedPosterURL?.absoluteString ?? movie.posterURL
+        let resolvedBackdrop = movie.resolvedBackdropURL?.absoluteString ?? (!movie.backdropURL.isEmpty ? movie.backdropURL : resolvedPoster)
+
+        let unifiedTicket = Ticket(
+            bookingID: bookingRef,
+            showID: show.id,
+            userID: userID,
+            seatID: combinedSeatIDs,
+            seatLabel: combinedSeatLabels,
+            ticketCode: code,
+            barcodeValue: code,
+            price: total,
+            status: "confirmed",
+            movieTitle: movie.title,
+            posterURL: resolvedPoster,
+            backdropURL: resolvedBackdrop,
+            cinemaName: cinema.name,
+            screenName: screen.name,
+            showtime: show.startTime
+        )
+
+        for seat in seats {
             bookedSeatIDs.insert(seat.id)
             heldSeats.removeValue(forKey: seat.id)
         }
 
         stopCountdown()
-        return (true, createdTickets, "Booking confirmed!")
+        return (true, [unifiedTicket], "Booking confirmed!")
     }
 
     private func startCountdown(seconds: Int) {

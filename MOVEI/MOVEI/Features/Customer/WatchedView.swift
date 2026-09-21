@@ -6,6 +6,7 @@
 import SwiftUI
 
 public struct WatchedView: View {
+    @Environment(\.dismiss) private var dismiss
     @ObservedObject private var ticketService = TicketService.shared
     @State private var ratingMovieTitle: String?
     @State private var selectedRating: Double = 5.0
@@ -23,7 +24,7 @@ public struct WatchedView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Watch History")
-                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .font(.system(size: 34, weight: .bold))
                         Text("Your cinema memories and collectibles")
                             .font(.caption)
                             .foregroundStyle(AppTheme.muted)
@@ -46,17 +47,17 @@ public struct WatchedView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 44)
-                        .background(Color.white)
+                        .background(AppTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 24))
                         .padding(.horizontal, 20)
                     } else {
                         ForEach(watchedTickets) { ticket in
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack(spacing: 14) {
-                                    AsyncImage(url: URL(string: ticket.posterURL)) { img in
+                                    RobustAsyncImage(candidateURLs: [ticket.resolvedPosterURL, ticket.resolvedBackdropURL].compactMap { $0 }) { img in
                                         img.resizable().scaledToFill()
                                     } placeholder: {
-                                        Rectangle().fill(AppTheme.ink)
+                                        Rectangle().fill(AppTheme.passBackground)
                                     }
                                     .frame(width: 60, height: 86)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -101,7 +102,7 @@ public struct WatchedView: View {
                                 }
                             }
                             .padding(16)
-                            .background(Color.white)
+                            .background(AppTheme.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 20))
                             .padding(.horizontal, 20)
                         }
@@ -110,6 +111,20 @@ public struct WatchedView: View {
                 .padding(.bottom, 24)
             }
             .background(AppTheme.canvas.ignoresSafeArea())
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(AppTheme.ink)
+                            .frame(width: 32, height: 32)
+                            .background(AppTheme.surface, in: Circle())
+                            .shadow(color: Color.black.opacity(0.1), radius: 4, y: 1)
+                    }
+                }
+            }
             .sheet(item: $ratingMovieTitle) { title in
                 ReviewModalView(movieTitle: title)
             }
@@ -155,7 +170,7 @@ public struct ReviewModalView: View {
                 TextField("Write your thoughts on the movie...", text: $review, axis: .vertical)
                     .lineLimit(4...6)
                     .padding(16)
-                    .background(Color.white)
+                    .background(AppTheme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .padding(.horizontal, 20)
 
@@ -164,10 +179,10 @@ public struct ReviewModalView: View {
                 } label: {
                     Text("Submit Review")
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .background(AppTheme.ink, in: Capsule())
+                        .background(AppTheme.lime, in: Capsule())
                 }
                 .padding(.horizontal, 20)
 

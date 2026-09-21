@@ -20,30 +20,40 @@ public struct MovieDetailView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // Backdrop with navigation controls
                 ZStack(alignment: .topTrailing) {
-                    AsyncImage(url: URL(string: movie.backdropURL)) { image in
-                        image.resizable().scaledToFill()
-                    } placeholder: {
-                        Rectangle().fill(movie.accent)
+                    GeometryReader { geo in
+                        RobustAsyncImage(candidateURLs: [movie.resolvedBackdropURL, movie.resolvedPosterURL].compactMap { $0 }) { image in
+                            image.resizable().scaledToFill()
+                        } placeholder: {
+                            Rectangle().fill(AppTheme.passBackground)
+                        }
+                        .frame(width: geo.size.width, height: 360)
+                        .clipped()
                     }
-                    .frame(height: 380)
-                    .clipped()
+                    .frame(height: 360)
 
-                    LinearGradient(colors: [.black.opacity(0.3), .clear, .black.opacity(0.9)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [.black.opacity(0.35), .clear, .black.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                        .allowsHitTesting(false)
 
-                    Button { dismiss() } label: {
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        dismiss()
+                    } label: {
                         Image(systemName: "xmark")
-                            .font(.headline)
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(.white)
-                            .frame(width: 36, height: 36)
+                            .frame(width: 38, height: 38)
                             .background(.ultraThinMaterial, in: Circle())
                     }
-                    .padding(20)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    .padding(18)
                 }
+                .frame(height: 360)
 
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(movie.title)
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .font(.system(size: 32, weight: .bold))
                             .foregroundStyle(AppTheme.ink)
 
                         Text(movie.tagline)
@@ -86,17 +96,20 @@ public struct MovieDetailView: View {
                             Text("Book Tickets")
                         }
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
-                        .background(AppTheme.ink, in: Capsule())
+                        .background(AppTheme.lime, in: Capsule())
+                        .shadow(color: AppTheme.lime.opacity(0.35), radius: 10, y: 3)
                     }
                     .padding(.top, 12)
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 36)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity)
         .background(AppTheme.canvas.ignoresSafeArea())
     }
 }

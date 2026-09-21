@@ -79,7 +79,7 @@ public struct SeatMapView: View {
                                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             } label: {
                                 Text("\(seat.seatNumber)")
-                                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                                    .font(.system(size: 11, weight: .bold))
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 34)
                                     .background(seatColor(isSelected: isSelected, isBooked: isBooked, isHeld: isHeld, type: seat.seatType))

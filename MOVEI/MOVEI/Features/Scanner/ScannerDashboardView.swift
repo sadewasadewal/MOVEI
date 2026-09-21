@@ -20,7 +20,7 @@ public struct ScannerDashboardView: View {
                             .tracking(1.4)
                             .foregroundStyle(AppTheme.muted)
                         Text(scannerService.assignedCinema.name)
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .font(.system(size: 28, weight: .bold))
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
@@ -33,7 +33,7 @@ public struct ScannerDashboardView: View {
                                 .tracking(1.2)
                                 .foregroundStyle(AppTheme.muted)
                             Text("\(scannerService.totalAdmissionsToday)")
-                                .font(.system(size: 38, weight: .black, design: .rounded))
+                                .font(.system(size: 38, weight: .black))
                                 .foregroundStyle(AppTheme.ink)
                             Text("Across all screening gates")
                                 .font(.caption2)
@@ -45,7 +45,7 @@ public struct ScannerDashboardView: View {
                             .foregroundStyle(AppTheme.lime)
                     }
                     .padding(20)
-                    .background(Color.white)
+                    .background(AppTheme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 22))
                     .padding(.horizontal, 20)
 
@@ -82,7 +82,7 @@ public struct ScannerDashboardView: View {
                                 }
                             }
                             .padding(14)
-                            .background(Color.white)
+                            .background(AppTheme.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                         }
                     }

@@ -78,7 +78,7 @@ export interface Show {
 }
 
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'expired' | 'completed';
-export type TicketStatus = 'reserved' | 'confirmed' | 'used' | 'cancelled' | 'expired';
+export type TicketStatus = 'pending' | 'reserved' | 'confirmed' | 'used' | 'cancelled' | 'expired';
 
 export interface Booking {
   id: string;
@@ -102,9 +102,19 @@ export interface Ticket {
   ticket_code: string;
   barcode_value: string;
   status: TicketStatus;
+  customer_name?: string;
+  customer_phone?: string;
+  customer_email?: string;
+  seat_label?: string;
+  movie_title?: string;
+  cinema_name?: string;
+  screen_name?: string;
+  showtime?: string;
+  price?: number;
   hold_expires_at?: string | null;
   scanned_at?: string | null;
   scanned_by?: string | null;
+  approved_at?: string | null;
   created_at?: string;
   seat?: Seat;
   show?: Show;
@@ -117,6 +127,17 @@ export interface Profile {
   role: UserRole;
   avatar_url?: string;
   created_at?: string;
+}
+
+export interface AppAnnouncement {
+  id: string;
+  title: string;
+  message: string;
+  type: 'announcement' | 'update' | 'maintenance' | 'promo';
+  target_version?: string;
+  is_active: boolean;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  created_at: string;
 }
 
 export type ScanResult = 'valid' | 'already_used' | 'wrong_cinema' | 'invalid' | 'cancelled' | 'expired';

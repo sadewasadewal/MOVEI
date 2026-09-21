@@ -8,11 +8,13 @@ import UIKit
 
 public struct InteractiveTicketTearBar: View {
     @Binding public var isTorn: Bool
+    public var onTear: (() -> Void)? = nil
     @State private var dragX: CGFloat = 0
     @State private var lastHapticThreshold: Int = 0
 
-    public init(isTorn: Binding<Bool>) {
+    public init(isTorn: Binding<Bool>, onTear: (() -> Void)? = nil) {
         self._isTorn = isTorn
+        self.onTear = onTear
     }
 
     public var body: some View {
@@ -69,6 +71,7 @@ public struct InteractiveTicketTearBar: View {
                             }
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
                             UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
+                            onTear?()
                         } else {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
                                 dragX = 0
@@ -81,5 +84,14 @@ public struct InteractiveTicketTearBar: View {
         }
         .frame(height: 24)
         .clipped()
+        .onChange(of: isTorn) { _, newValue in
+            if !newValue {
+                // Snap-back: rebuild the perforations with a spring
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                    dragX = 0
+                }
+                lastHapticThreshold = 0
+            }
+        }
     }
 }

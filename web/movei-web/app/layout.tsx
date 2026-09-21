@@ -1,12 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import BottomTabBar from '../components/BottomTabBar';
 
 export const metadata: Metadata = {
-  title: 'MOVEI 🎬 | Cinema Ticketing Platform',
-  description: 'Unified cinema ticketing experience with live seat reservations, Apple Wallet passes, and fast gate scanning.',
+  title: 'MOVEI Cinema OS 🎬 | Admin Operations Studio',
+  description: 'Central administrative portal for managing movies, shows, cinemas, ticket approvals, and in-app updates for MOVEI iOS.',
   icons: {
     icon: '/favicon.ico'
   }
@@ -18,16 +15,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full bg-black text-gray-900 antialiased">
-      <body className="min-h-full flex flex-col bg-black">
-        <Navbar />
-        <main className="flex-1 w-full pb-20 md:pb-0">
+    <html lang="en" className="h-full bg-[#070709] text-gray-100 antialiased dark">
+      <body className="min-h-full flex flex-col bg-[#070709] text-gray-100 selection:bg-[#bae861] selection:text-black">
+        <main className="flex-1 w-full flex flex-col">
           {children}
         </main>
-        <div className="hidden md:block">
-          <Footer />
-        </div>
-        <BottomTabBar />
       </body>
     </html>
   );

@@ -37,8 +37,8 @@ public struct WalletView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     // Header with Three-Dots Pass Management
                     HStack(alignment: .firstTextBaseline) {
-                        Text("Movie Wallet")
-                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                        Text("Your Tickets")
+                            .font(.system(size: 34, weight: .bold))
                         Spacer()
                         Menu {
                             if let current = activeTicket {
@@ -86,7 +86,7 @@ public struct WalletView: View {
                                 .foregroundStyle(AppTheme.ink)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 4)
-                                .background(Color.white.opacity(0.85), in: Capsule())
+                                .background(AppTheme.surfaceElevated, in: Capsule())
                         }
                     }
 
@@ -166,11 +166,13 @@ public struct WalletView: View {
                         }
                     }
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 110)
             }
             .background(.ultraThinMaterial)
             .background(AppTheme.canvas.ignoresSafeArea())
-            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -196,8 +198,11 @@ public struct WalletView: View {
     private func deleteTicket(_ ticket: Ticket) {
         withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
             ticketService.deleteTicket(ticket)
-            if selectedIndex >= tickets.count - 1 {
-                selectedIndex = max(0, tickets.count - 2)
+            let remaining = ticketService.upcomingTickets.count
+            if remaining <= 1 {
+                selectedIndex = 0
+            } else if selectedIndex >= remaining {
+                selectedIndex = remaining - 1
             }
         }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -232,7 +237,7 @@ public struct EmptyWalletCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 44)
-        .background(Color.white)
+        .background(AppTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }

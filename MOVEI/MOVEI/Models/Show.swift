@@ -73,6 +73,7 @@ public struct Ticket: Identifiable, Codable, Hashable {
     public var seatLabel: String
     public var ticketCode: String
     public var barcodeValue: String
+    public var price: Double
     public var status: String // reserved, confirmed, used, cancelled, expired
     public var scannedAt: Date?
     public var scannedBy: String?
@@ -83,6 +84,40 @@ public struct Ticket: Identifiable, Codable, Hashable {
     public var screenName: String
     public var showtime: Date
 
+    public var resolvedPosterURL: URL? {
+        ImageURLResolver.resolve(posterURL, fallback: backdropURL, baseURL: MovieService.shared.activeBaseURL)
+    }
+
+    public var resolvedBackdropURL: URL? {
+        ImageURLResolver.resolve(backdropURL, fallback: posterURL, baseURL: MovieService.shared.activeBaseURL)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, bookingID, showID, userID, seatID, seatLabel, ticketCode, barcodeValue, price, status, scannedAt, scannedBy, movieTitle, posterURL, backdropURL, cinemaName, screenName, showtime
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.bookingID = try container.decode(String.self, forKey: .bookingID)
+        self.showID = try container.decode(String.self, forKey: .showID)
+        self.userID = try container.decode(String.self, forKey: .userID)
+        self.seatID = try container.decode(String.self, forKey: .seatID)
+        self.seatLabel = try container.decode(String.self, forKey: .seatLabel)
+        self.ticketCode = try container.decode(String.self, forKey: .ticketCode)
+        self.barcodeValue = try container.decode(String.self, forKey: .barcodeValue)
+        self.price = try container.decodeIfPresent(Double.self, forKey: .price) ?? 0
+        self.status = try container.decode(String.self, forKey: .status)
+        self.scannedAt = try container.decodeIfPresent(Date.self, forKey: .scannedAt)
+        self.scannedBy = try container.decodeIfPresent(String.self, forKey: .scannedBy)
+        self.movieTitle = try container.decode(String.self, forKey: .movieTitle)
+        self.posterURL = try container.decode(String.self, forKey: .posterURL)
+        self.backdropURL = try container.decode(String.self, forKey: .backdropURL)
+        self.cinemaName = try container.decode(String.self, forKey: .cinemaName)
+        self.screenName = try container.decode(String.self, forKey: .screenName)
+        self.showtime = try container.decode(Date.self, forKey: .showtime)
+    }
+
     public init(
         id: String = UUID().uuidString,
         bookingID: String,
@@ -92,6 +127,7 @@ public struct Ticket: Identifiable, Codable, Hashable {
         seatLabel: String,
         ticketCode: String,
         barcodeValue: String,
+        price: Double = 0,
         status: String = "confirmed",
         scannedAt: Date? = nil,
         scannedBy: String? = nil,
@@ -110,6 +146,7 @@ public struct Ticket: Identifiable, Codable, Hashable {
         self.seatLabel = seatLabel
         self.ticketCode = ticketCode
         self.barcodeValue = barcodeValue
+        self.price = price
         self.status = status
         self.scannedAt = scannedAt
         self.scannedBy = scannedBy

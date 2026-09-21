@@ -3,29 +3,51 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MOCK_PROFILES } from '../../lib/mock-data';
-import { User, ShieldCheck, QrCode, ArrowRight, Film, Lock, Mail } from 'lucide-react';
+import { User, ShieldCheck, QrCode, ArrowRight, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState<'signin' | 'quick_roles'>('quick_roles');
+  const [role, setRole] = useState<'customer' | 'admin' | 'scanner'>('customer');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleQuickLogin = (role: 'customer' | 'admin' | 'scanner') => {
-    if (role === 'admin') {
-      router.push('/admin');
-    } else if (role === 'scanner') {
-      router.push('/scanner');
-    } else {
-      router.push('/wallet');
-    }
-  };
-
-  const handleFormLogin = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate Supabase login
-    router.push('/wallet');
+    if (!email) return;
+    setIsLoading(true);
+
+    try {
+      // Sync user to Web Admin Studio /api/users
+      const displayName = isRegistering 
+        ? (fullName.trim() || email.split('@')[0])
+        : (email.split('@')[0]);
+
+      await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: displayName,
+          email: email.trim().toLowerCase(),
+          role: role,
+          device: 'Web Browser'
+        })
+      });
+
+      if (role === 'admin') {
+        router.push('/');
+      } else if (role === 'scanner') {
+        router.push('/scanner');
+      } else {
+        router.push('/wallet');
+      }
+    } catch (err) {
+      console.error('Sign in error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -39,7 +61,7 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-black text-white">Access MOVEI</h1>
           <p className="text-xs text-gray-400">
-            Unified access across customer wallet, administration, and ticket scanners.
+            {isRegistering ? 'Create your brand new MOVEI account' : 'Sign in to access tickets, scanning, or administration'}
           </p>
         </div>
 
@@ -47,123 +69,124 @@ export default function LoginPage() {
         <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 text-xs font-semibold">
           <button
             type="button"
-            onClick={() => setActiveTab('quick_roles')}
+            onClick={() => setIsRegistering(false)}
             className={`flex-1 py-2 rounded-lg transition-all ${
-              activeTab === 'quick_roles' ? 'bg-[#bae861] text-black font-extrabold shadow' : 'text-gray-400 hover:text-white'
+              !isRegistering ? 'bg-[#bae861] text-black font-extrabold shadow' : 'text-gray-400 hover:text-white'
             }`}
           >
-            Demo Role Switcher
+            Sign In
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('signin')}
+            onClick={() => setIsRegistering(true)}
             className={`flex-1 py-2 rounded-lg transition-all ${
-              activeTab === 'signin' ? 'bg-[#bae861] text-black font-extrabold shadow' : 'text-gray-400 hover:text-white'
+              isRegistering ? 'bg-[#bae861] text-black font-extrabold shadow' : 'text-gray-400 hover:text-white'
             }`}
           >
-            Supabase Sign In
+            Create Account
           </button>
         </div>
 
-        {activeTab === 'quick_roles' ? (
-          /* One-click demo roles */
-          <div className="space-y-3">
-            <span className="text-[10px] uppercase font-bold text-gray-400 block text-center">
-              Select an account to launch instantly:
-            </span>
-
-            <button
-              onClick={() => handleQuickLogin('customer')}
-              className="w-full p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#bae861]/40 flex items-center justify-between group transition-all text-left"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#bae861]/15 text-[#bae861] flex items-center justify-center">
-                  <User className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="font-bold text-white text-xs">Customer Account</div>
-                  <div className="text-[11px] text-gray-400">Alex Mercer • Wallet & Bookings</div>
-                </div>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          {isRegistering && (
+            <div>
+              <label className="font-semibold text-gray-300 block mb-1">Full Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your name"
+                  className="w-full bg-black/40 border border-white/15 rounded-xl pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
+                />
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#bae861] group-hover:translate-x-1 transition-all" />
-            </button>
+            </div>
+          )}
 
-            <button
-              onClick={() => handleQuickLogin('admin')}
-              className="w-full p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#bae861]/40 flex items-center justify-between group transition-all text-left"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#bae861]/25 text-[#bae861] flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="font-bold text-white text-xs">Cinema Admin Portal</div>
-                  <div className="text-[11px] text-gray-400">Elena Vance • Shows, Movies, Metrics</div>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#bae861] group-hover:translate-x-1 transition-all" />
-            </button>
-
-            <button
-              onClick={() => handleQuickLogin('scanner')}
-              className="w-full p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#fa6b38]/40 flex items-center justify-between group transition-all text-left"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#fa6b38]/20 text-[#fa6b38] flex items-center justify-center">
-                  <QrCode className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="font-bold text-white text-xs">Gate Scanner Staff</div>
-                  <div className="text-[11px] text-gray-400">Marcus Brody • Camera Barcode Admission</div>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#fa6b38] group-hover:translate-x-1 transition-all" />
-            </button>
+          <div>
+            <label className="font-semibold text-gray-300 block mb-1">Email Address</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                className="w-full bg-black/40 border border-white/15 rounded-xl pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
+              />
+            </div>
           </div>
-        ) : (
-          /* Standard email/password form */
-          <form onSubmit={handleFormLogin} className="space-y-4 text-xs">
-            <div>
-              <label className="font-semibold text-gray-300 block mb-1">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@cinema.com"
-                  className="w-full bg-black/40 border border-white/15 rounded-xl pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
-                />
-              </div>
-            </div>
 
-            <div>
-              <label className="font-semibold text-gray-300 block mb-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-black/40 border border-white/15 rounded-xl pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
-                />
-              </div>
+          <div>
+            <label className="font-semibold text-gray-300 block mb-1">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-black/40 border border-white/15 rounded-xl pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
+              />
             </div>
+          </div>
 
-            <button
-              type="submit"
-              className="w-full py-3 rounded-xl bg-[#bae861] text-black font-extrabold shadow-lg shadow-[#bae861]/25 hover:bg-[#cbf27a] transition-all"
-            >
-              Sign In
-            </button>
-          </form>
-        )}
+          <div>
+            <label className="font-semibold text-gray-300 block mb-1">Account Role</label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setRole('customer')}
+                className={`py-2 px-2 rounded-xl text-center border transition-all ${
+                  role === 'customer'
+                    ? 'border-[#bae861] bg-[#bae861]/15 text-[#bae861] font-bold'
+                    : 'border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                Customer
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('scanner')}
+                className={`py-2 px-2 rounded-xl text-center border transition-all ${
+                  role === 'scanner'
+                    ? 'border-[#fa6b38] bg-[#fa6b38]/15 text-[#fa6b38] font-bold'
+                    : 'border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                Scanner
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('admin')}
+                className={`py-2 px-2 rounded-xl text-center border transition-all ${
+                  role === 'admin'
+                    ? 'border-cyan-400 bg-cyan-400/15 text-cyan-300 font-bold'
+                    : 'border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                Admin
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 rounded-xl bg-[#bae861] text-black font-extrabold shadow-lg shadow-[#bae861]/25 hover:bg-[#cbf27a] transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+          >
+            <span>{isLoading ? 'Processing...' : (isRegistering ? 'Create Account & Enter' : 'Sign In')}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </form>
 
         <div className="pt-2 text-center text-xs text-gray-500">
-          Zero password lockouts in demo environment. All actions are logged safely.
+          Clean authentication without fake accounts. Accounts are saved to Web Admin Studio.
         </div>
 
       </div>

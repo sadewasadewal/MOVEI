@@ -17,10 +17,10 @@ public struct AdminMovieListView: View {
             List {
                 ForEach(movieService.movies) { movie in
                     HStack(spacing: 14) {
-                        AsyncImage(url: URL(string: movie.posterURL)) { img in
+                        RobustAsyncImage(candidateURLs: [movie.resolvedPosterURL, movie.resolvedBackdropURL].compactMap { $0 }) { img in
                             img.resizable().scaledToFill()
                         } placeholder: {
-                            Rectangle().fill(AppTheme.ink)
+                            Rectangle().fill(AppTheme.passBackground)
                         }
                         .frame(width: 46, height: 64)
                         .clipShape(RoundedRectangle(cornerRadius: 8))

@@ -302,19 +302,6 @@ export default function WalletPage() {
                 )}
               </div>
 
-              {/* Add to Apple Wallet Button */}
-              <div className="mt-4">
-                <a
-                  href={`/api/tickets/${activeTicket.id}/pass`}
-                  download={`${activeTicket.ticket_code}.pkpass`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-full h-12 rounded-2xl bg-black hover:bg-neutral-900 active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
-                >
-                  <Smartphone className="w-4 h-4 text-[#bae861]" />
-                  Add to Apple Wallet
-                </a>
-              </div>
-
             </div>
           </div>
 

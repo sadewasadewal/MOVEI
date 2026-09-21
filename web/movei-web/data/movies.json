@@ -1,0 +1,138 @@
+[
+  {
+    "id": "m-1790002659846",
+    "title": "Spider-Man: Brand New Day",
+    "slug": "spider-man--brand-new-day",
+    "tagline": "A forgotten Peter Parker lives alone as a full-time Spider-Man ",
+    "description": "A forgotten Peter Parker lives alone as a full-time Spider-Man until mounting pressure triggers a dangerous change and a powerful new enemy emerges.",
+    "poster_url": "http://localhost:3000/uploads/posters/poster-1790002654640-WhatsApp_Image_2026-09-21_at_1.jpeg",
+    "backdrop_url": "http://localhost:3000/uploads/posters/poster-1790002654640-WhatsApp_Image_2026-09-21_at_1.jpeg",
+    "trailer_url": "",
+    "runtime_minutes": 145,
+    "rating": 8,
+    "release_date": "2026-09-21",
+    "genres": [
+      "Action",
+      "Sci-Fi"
+    ],
+    "language": "English",
+    "age_rating": "PG-13",
+    "status": "published",
+    "created_at": "2026-09-21T14:57:39.855Z",
+    "updated_at": "2026-09-21T14:57:39.855Z"
+  },
+  {
+    "id": "m-wicked",
+    "title": "Wicked",
+    "slug": "wicked",
+    "tagline": "Everyone deserves the chance to fly.",
+    "description": "Elphaba, an ostracized but fiery girl and Glinda, a bubbly popular aristocrat, forge an improbable bond in the magical land of Oz, before destiny pulls them into the legendary conflict.",
+    "poster_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&h=900&q=80",
+    "backdrop_url": "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1920&h=1080&q=80",
+    "trailer_url": "https://www.youtube.com/watch?v=6COmYeLsz4c",
+    "runtime_minutes": 160,
+    "release_date": "2024-11-22",
+    "rating": 8.5,
+    "genres": [
+      "Fantasy",
+      "Musical",
+      "Adventure"
+    ],
+    "language": "English",
+    "age_rating": "PG",
+    "status": "published",
+    "created_at": "2026-09-21T00:00:00.000Z",
+    "updated_at": "2026-09-21T00:00:00.000Z"
+  },
+  {
+    "id": "m-inception",
+    "title": "Inception",
+    "slug": "inception",
+    "tagline": "Your mind is the scene of the crime.",
+    "description": "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O., but his tragic past may doom the project and his team to disaster.",
+    "poster_url": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&h=900&q=80",
+    "backdrop_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&h=1080&q=80",
+    "trailer_url": "https://www.youtube.com/watch?v=YoHD9XEInc0",
+    "runtime_minutes": 148,
+    "release_date": "2010-07-16",
+    "rating": 8.8,
+    "genres": [
+      "Action",
+      "Sci-Fi",
+      "Adventure"
+    ],
+    "language": "English",
+    "age_rating": "PG-13",
+    "status": "published",
+    "created_at": "2026-09-21T00:00:00.000Z",
+    "updated_at": "2026-09-21T00:00:00.000Z"
+  },
+  {
+    "id": "m-oppenheimer",
+    "title": "Oppenheimer",
+    "slug": "oppenheimer",
+    "tagline": "The world forever changes.",
+    "description": "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb during World War II.",
+    "poster_url": "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=600&h=900&q=80",
+    "backdrop_url": "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=1920&h=1080&q=80",
+    "trailer_url": "https://www.youtube.com/watch?v=uYPbbksJxIg",
+    "runtime_minutes": 180,
+    "release_date": "2023-07-21",
+    "rating": 8.9,
+    "genres": [
+      "Biography",
+      "Drama",
+      "History"
+    ],
+    "language": "English",
+    "age_rating": "R",
+    "status": "published",
+    "created_at": "2026-09-21T00:00:00.000Z",
+    "updated_at": "2026-09-21T00:00:00.000Z"
+  },
+  {
+    "id": "m-interstellar",
+    "title": "Interstellar",
+    "slug": "interstellar",
+    "tagline": "Mankind was born on Earth. It was never meant to die here.",
+    "description": "When Earth becomes uninhabitable in the future, a farmer and ex-NASA pilot, Joseph Cooper, is tasked to pilot a spacecraft, along with a team of researchers, to find a new planet for humans.",
+    "poster_url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&h=900&q=80",
+    "backdrop_url": "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1920&h=1080&q=80",
+    "trailer_url": "https://www.youtube.com/watch?v=zSWdZVtXT7E",
+    "runtime_minutes": 169,
+    "release_date": "2014-11-07",
+    "rating": 8.7,
+    "genres": [
+      "Adventure",
+      "Drama",
+      "Sci-Fi"
+    ],
+    "language": "English",
+    "age_rating": "PG-13",
+    "status": "published",
+    "created_at": "2026-09-21T00:00:00.000Z",
+    "updated_at": "2026-09-21T00:00:00.000Z"
+  },
+  {
+    "id": "m-pak",
+    "title": "PAK",
+    "slug": "pak",
+    "tagline": "A new cinematic force begins.",
+    "description": "An intense thrilling odyssey of resilience, courage and unyielding redemption.",
+    "poster_url": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=600&q=80",
+    "backdrop_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&h=1080&q=80",
+    "trailer_url": "",
+    "runtime_minutes": 135,
+    "rating": 8.5,
+    "release_date": "2026-09-21",
+    "genres": [
+      "Action",
+      "Thriller"
+    ],
+    "language": "English",
+    "age_rating": "PG-13",
+    "status": "published",
+    "created_at": "2026-09-21T00:00:00.000Z",
+    "updated_at": "2026-09-21T00:00:00.000Z"
+  }
+]
