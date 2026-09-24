@@ -28,6 +28,7 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldAlert,
+  ShieldCheck,
   Smartphone,
   Sparkles,
   UploadCloud,
@@ -70,11 +71,15 @@ export default function AdminPage() {
     phone?: string;
     device?: string;
     registered_at: string;
+    password?: string;
+    created_by?: 'admin' | 'mobile_app';
+    venue?: string;
   }[]>([]);
 
   // Filter states
   const [movieStatusFilter, setMovieStatusFilter] = useState<'all' | MovieStatus>('all');
   const [ticketStatusFilter, setTicketStatusFilter] = useState<'all' | TicketStatus>('all');
+  const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'staff' | 'customer'>('all');
 
   // Modals
   const [showAddMovieModal, setShowAddMovieModal] = useState(false);
@@ -83,6 +88,17 @@ export default function AdminPage() {
   const [showAddAnnouncementModal, setShowAddAnnouncementModal] = useState(false);
   const [selectedTicketModal, setSelectedTicketModal] = useState<Ticket | null>(null);
   const [showAddCinemaModal, setShowAddCinemaModal] = useState(false);
+  const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+  const [staffForm, setStaffForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'scanner' as 'scanner' | 'admin',
+    phone: '',
+    venue: '',
+  });
+  const [isSubmittingStaff, setIsSubmittingStaff] = useState(false);
+  const [staffSuccessNotice, setStaffSuccessNotice] = useState<{ email: string; pass: string; role: string; name: string } | null>(null);
 
   // Forms: New Movie
   const [movieForm, setMovieForm] = useState<Partial<Movie>>({
@@ -126,10 +142,11 @@ export default function AdminPage() {
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Failed to upload custom poster PNG');
       }
+      const savedUrl = data.relativeUrl || data.url;
       setMovieForm(prev => ({
         ...prev,
-        poster_url: data.url,
-        backdrop_url: usePosterAsBackdrop || !prev.backdrop_url ? data.url : prev.backdrop_url,
+        poster_url: savedUrl,
+        backdrop_url: usePosterAsBackdrop || !prev.backdrop_url ? savedUrl : prev.backdrop_url,
       }));
     } catch (err: any) {
       setUploadError(err.message || 'Failed to upload poster image');
@@ -155,9 +172,10 @@ export default function AdminPage() {
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Failed to upload backdrop image');
       }
+      const savedUrl = data.relativeUrl || data.url;
       setMovieForm(prev => ({
         ...prev,
-        backdrop_url: data.url,
+        backdrop_url: savedUrl,
       }));
     } catch (err: any) {
       setUploadError(err.message || 'Failed to upload backdrop image');
@@ -198,6 +216,12 @@ export default function AdminPage() {
 
   // Load movies & users from persistent backend
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab') as AdminTab | null;
+      if (tab) setActiveTab(tab);
+    }
+
     fetch('/api/movies')
       .then(res => res.json())
       .then(data => {
@@ -255,6 +279,51 @@ export default function AdminPage() {
       } catch (err) {
         console.error('Failed to clear users:', err);
       }
+    }
+  };
+
+  const handleCreateStaff = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!staffForm.name || !staffForm.email || !staffForm.password) return;
+    setIsSubmittingStaff(true);
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: staffForm.name.trim(),
+          email: staffForm.email.toLowerCase().trim(),
+          password: staffForm.password.trim(),
+          role: staffForm.role,
+          phone: staffForm.phone.trim(),
+          venue: staffForm.venue.trim() || 'All Venues',
+          created_by: 'admin',
+          device: 'Admin Web Portal'
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        setStaffSuccessNotice({
+          name: staffForm.name.trim(),
+          email: staffForm.email.toLowerCase().trim(),
+          pass: staffForm.password.trim(),
+          role: staffForm.role === 'admin' ? 'Platform Administrator' : 'Scanner Staff'
+        });
+        setStaffForm({
+          name: '',
+          email: '',
+          password: '',
+          role: 'scanner',
+          phone: '',
+          venue: ''
+        });
+        setShowAddStaffModal(false);
+        fetchUsers();
+      }
+    } catch (err) {
+      console.error('Failed to create staff account:', err);
+    } finally {
+      setIsSubmittingStaff(false);
     }
   };
 
@@ -1146,7 +1215,7 @@ export default function AdminPage() {
                           Rs. {ticket.price || 1800}
                         </td>
                         <td className="p-4">
-                          {ticket.status === 'used' ? (
+                          {ticket.status === 'used' || ticket.torn || ticket.scanned_at ? (
                             <div className="flex flex-col items-start gap-1">
                               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                                 <span>✂️</span> TORN & ADMITTED
@@ -1178,7 +1247,7 @@ export default function AdminPage() {
                               </button>
                             )}
 
-                            {ticket.status === 'confirmed' && (
+                            {ticket.status === 'confirmed' && !ticket.torn && !ticket.scanned_at && (
                               <button
                                 onClick={() => handleAdmitTicket(ticket.id)}
                                 className="px-2.5 py-1 bg-[#bae861]/20 hover:bg-[#bae861]/30 text-[#bae861] font-bold rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1 border border-[#bae861]/30"
@@ -1187,7 +1256,7 @@ export default function AdminPage() {
                               </button>
                             )}
 
-                            {ticket.status !== 'cancelled' && ticket.status !== 'used' && (
+                            {ticket.status !== 'cancelled' && ticket.status !== 'used' && !ticket.torn && !ticket.scanned_at && (
                               <button
                                 onClick={() => handleCancelTicket(ticket.id)}
                                 className="px-2 py-1 text-red-400 hover:bg-red-500/10 rounded-lg text-xs transition-all cursor-pointer"
@@ -1316,6 +1385,13 @@ export default function AdminPage() {
 
               <div className="flex items-center gap-3">
                 <button
+                  onClick={() => setShowAddStaffModal(true)}
+                  className="px-4 py-2 bg-[#bae861] hover:bg-[#cbf27a] text-black rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-lg shadow-[#bae861]/20 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Create Staff Account
+                </button>
+                <button
                   onClick={fetchUsers}
                   className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 border border-white/10"
                 >
@@ -1333,6 +1409,36 @@ export default function AdminPage() {
                 )}
               </div>
             </div>
+
+            {/* Staff Credentials Notification Banner */}
+            {staffSuccessNotice && (
+              <div className="bg-[#1a2318] border border-[#bae861]/40 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-white shadow-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#bae861] text-black flex items-center justify-center font-black text-sm">
+                    ✓
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      Staff Credentials Provisioned: {staffSuccessNotice.name}
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-[#bae861]/20 text-[#bae861]">
+                        {staffSuccessNotice.role}
+                      </span>
+                    </h4>
+                    <p className="text-xs text-gray-300 mt-0.5">
+                      Email: <span className="font-mono text-[#bae861] font-bold">{staffSuccessNotice.email}</span> &nbsp;|&nbsp;
+                      Password: <span className="font-mono text-[#bae861] font-bold">{staffSuccessNotice.pass}</span>
+                      <span className="text-gray-400 ml-2">(Staff member can now log in via the MOVEI iOS app)</span>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setStaffSuccessNotice(null)}
+                  className="text-xs text-gray-400 hover:text-white px-3 py-1 bg-white/5 rounded-lg border border-white/10"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
 
             {/* User Statistics Row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -1364,6 +1470,40 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setUserRoleFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  userRoleFilter === 'all'
+                    ? 'bg-white text-black'
+                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                }`}
+              >
+                All Accounts ({users.length})
+              </button>
+              <button
+                onClick={() => setUserRoleFilter('staff')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  userRoleFilter === 'staff'
+                    ? 'bg-[#007aff] text-white shadow-lg shadow-[#007aff]/20'
+                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                }`}
+              >
+                Staff Only ({users.filter(u => u.role === 'scanner' || u.role === 'admin').length})
+              </button>
+              <button
+                onClick={() => setUserRoleFilter('customer')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  userRoleFilter === 'customer'
+                    ? 'bg-[#bae861] text-black shadow-lg shadow-[#bae861]/20'
+                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                }`}
+              >
+                Customers ({users.filter(u => u.role === 'customer').length})
+              </button>
+            </div>
+
             {/* Users Table / Empty State */}
             {users.length === 0 ? (
               <div className="bg-[#12121a] border border-white/10 rounded-2xl p-16 text-center">
@@ -1372,7 +1512,7 @@ export default function AdminPage() {
                 </div>
                 <h3 className="text-lg font-bold text-white">No Registered Users Yet</h3>
                 <p className="text-xs text-gray-400 max-w-sm mx-auto mt-1.5 leading-relaxed">
-                  When new customers or staff sign up on the MOVEI iOS app, their user profiles will appear here in real-time.
+                  Staff accounts can be provisioned above. When customers sign up on the MOVEI iOS app, their user profiles will appear here in real-time.
                 </p>
               </div>
             ) : (
@@ -1383,14 +1523,19 @@ export default function AdminPage() {
                       <tr>
                         <th className="px-6 py-4">User Details</th>
                         <th className="px-6 py-4">Assigned Role</th>
-                        <th className="px-6 py-4">Phone</th>
+                        <th className="px-6 py-4">Staff Password</th>
+                        <th className="px-6 py-4">Phone / Venue</th>
                         <th className="px-6 py-4">Registered Via</th>
-                        <th className="px-6 py-4">Registration Date</th>
                         <th className="px-6 py-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {users
+                        .filter(u => {
+                          if (userRoleFilter === 'staff') return u.role === 'scanner' || u.role === 'admin';
+                          if (userRoleFilter === 'customer') return u.role === 'customer';
+                          return true;
+                        })
                         .filter(u => 
                           (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -1421,8 +1566,18 @@ export default function AdminPage() {
                                 {user.role}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-xs text-gray-400">
-                              {user.phone || '—'}
+                            <td className="px-6 py-4 text-xs">
+                              {user.password ? (
+                                <span className="font-mono bg-white/10 border border-white/15 px-2.5 py-1 rounded-md text-white font-bold tracking-wide">
+                                  {user.password}
+                                </span>
+                              ) : (
+                                <span className="text-gray-500 italic">Self-managed</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-xs text-gray-300">
+                              <div className="font-semibold text-white">{user.venue || 'All Venues'}</div>
+                              <div className="text-[11px] text-gray-400">{user.phone || 'No phone'}</div>
                             </td>
                             <td className="px-6 py-4 text-xs text-gray-400">
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-300">
@@ -2074,7 +2229,9 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-400 uppercase font-semibold">Status</span>
-                  <p className="font-bold uppercase text-[#bae861]">{selectedTicketModal.status}</p>
+                  <p className={`font-bold uppercase ${(selectedTicketModal.status === 'used' || selectedTicketModal.torn || selectedTicketModal.scanned_at) ? 'text-emerald-400' : 'text-[#bae861]'}`}>
+                    {(selectedTicketModal.status === 'used' || selectedTicketModal.torn || selectedTicketModal.scanned_at) ? 'TORN & ADMITTED' : selectedTicketModal.status}
+                  </p>
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-400 uppercase font-semibold">Movie</span>
@@ -2110,7 +2267,7 @@ export default function AdminPage() {
                   </button>
                 )}
 
-                {selectedTicketModal.status === 'confirmed' && (
+                {selectedTicketModal.status === 'confirmed' && !selectedTicketModal.torn && !selectedTicketModal.scanned_at && (
                   <button
                     onClick={() => handleAdmitTicket(selectedTicketModal.id)}
                     className="w-full py-2.5 bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 cursor-pointer"
@@ -2119,7 +2276,7 @@ export default function AdminPage() {
                   </button>
                 )}
 
-                {selectedTicketModal.status !== 'cancelled' && (
+                {selectedTicketModal.status !== 'cancelled' && selectedTicketModal.status !== 'used' && !selectedTicketModal.torn && (
                   <button
                     onClick={() => handleCancelTicket(selectedTicketModal.id)}
                     className="w-full py-2 bg-red-500/15 hover:bg-red-500/25 text-red-400 font-semibold text-xs rounded-xl cursor-pointer"
@@ -2129,6 +2286,177 @@ export default function AdminPage() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================= MODAL: CREATE STAFF ACCOUNT ======================= */}
+      {showAddStaffModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#12121a] border border-white/10 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-[#bae861]" />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#bae861]">
+                    Cinema Admin Portal
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-white mt-1">Provision Staff Account</h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Accounts created here can log in on the MOVEI iOS app to access staff pages.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAddStaffModal(false)}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateStaff} className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-300 block mb-1.5">
+                  Staff Member Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Ruwan Silva"
+                  value={staffForm.name}
+                  onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-300 block mb-1.5">
+                  Staff Login Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. scanner.hall1@movei.app"
+                  value={staffForm.email}
+                  onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-gray-300">
+                    Assigned Login Password *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const randomPass = 'Movei' + Math.floor(1000 + Math.random() * 9000) + '!';
+                      setStaffForm({ ...staffForm, password: randomPass });
+                    }}
+                    className="text-[11px] font-bold text-[#bae861] hover:underline"
+                  >
+                    Generate Password
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. ScannerPass2026"
+                  value={staffForm.password}
+                  onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-300 block mb-1.5">
+                  Staff Role / Privilege Level *
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStaffForm({ ...staffForm, role: 'scanner' })}
+                    className={`p-3 rounded-2xl border text-left transition ${
+                      staffForm.role === 'scanner'
+                        ? 'bg-[#007aff]/15 border-[#007aff] text-white'
+                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="font-bold text-sm flex items-center gap-1.5">
+                      <QrCode className="w-4 h-4 text-[#007aff]" />
+                      Scanner Staff
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Camera barcode scanning & door ticket verification.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setStaffForm({ ...staffForm, role: 'admin' })}
+                    className={`p-3 rounded-2xl border text-left transition ${
+                      staffForm.role === 'admin'
+                        ? 'bg-orange-500/15 border-orange-500 text-white'
+                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="font-bold text-sm flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-orange-400" />
+                      Administrator
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Full control: catalog, schedules, venue setups, KPIs.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-300 block mb-1.5">
+                    Assigned Venue / Gate
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Scope Colombo Screen 2"
+                    value={staffForm.venue}
+                    onChange={(e) => setStaffForm({ ...staffForm, venue: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-300 block mb-1.5">
+                    Contact Phone (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="+94 77 123 4567"
+                    value={staffForm.phone}
+                    onChange={(e) => setStaffForm({ ...staffForm, phone: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#bae861]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddStaffModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingStaff}
+                  className="px-5 py-2.5 rounded-xl bg-[#bae861] hover:bg-[#cbf27a] text-black text-xs font-black shadow-lg shadow-[#bae861]/20 transition flex items-center gap-1.5"
+                >
+                  {isSubmittingStaff ? 'Provisioning...' : 'Provision Staff Credentials'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

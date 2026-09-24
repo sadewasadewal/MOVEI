@@ -21,7 +21,7 @@ public struct MovieDetailView: View {
                 // Backdrop with navigation controls
                 ZStack(alignment: .topTrailing) {
                     GeometryReader { geo in
-                        RobustAsyncImage(candidateURLs: [movie.resolvedBackdropURL, movie.resolvedPosterURL].compactMap { $0 }) { image in
+                        RobustAsyncImage(candidateURLs: movie.allBackdropCandidateURLs) { image in
                             image.resizable().scaledToFill()
                         } placeholder: {
                             Rectangle().fill(AppTheme.passBackground)

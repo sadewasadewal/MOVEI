@@ -13,7 +13,6 @@ public struct LoginView: View {
     @State private var fullName = ""
     @State private var email = ""
     @State private var password = ""
-    @State private var selectedRole: UserRole = .customer
     @State private var localError: String?
 
     enum AuthMode: String, CaseIterable, Identifiable {
@@ -27,25 +26,30 @@ public struct LoginView: View {
     public var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 24) {
-                    // Header Branding
-                    VStack(spacing: 6) {
-                        HStack(spacing: 4) {
-                            Text("MOVEI")
-                                .font(.system(size: 40, weight: .black))
-                                .foregroundStyle(AppTheme.ink)
-                            Text("•")
-                                .font(.system(size: 40, weight: .black))
-                                .foregroundStyle(AppTheme.lime)
-                        }
-                        Text("CINEMA EXPERIENCE PLATFORM")
-                            .font(.system(size: 11, weight: .bold))
-                            .tracking(3)
-                            .foregroundStyle(AppTheme.muted)
-                    }
-                    .padding(.top, 36)
+                VStack(spacing: 22) {
+                    
+                    // Top Cinematic Header with Animated Ticket Pass
+                    VStack(spacing: 14) {
+                        LottieAnimationView()
+                            .padding(.top, 12)
 
-                    // Mode Switcher (Sign In vs Create Account)
+                        VStack(spacing: 4) {
+                            HStack(spacing: 4) {
+                                Text("MOVEI")
+                                    .font(.system(size: 36, weight: .black))
+                                    .foregroundStyle(Color.white)
+                                Text("•")
+                                    .font(.system(size: 36, weight: .black))
+                                    .foregroundStyle(Color.white.opacity(0.6))
+                            }
+                            Text("CINEMA EXPERIENCE PLATFORM")
+                                .font(.system(size: 10, weight: .black))
+                                .tracking(3)
+                                .foregroundStyle(Color.white.opacity(0.75))
+                        }
+                    }
+
+                    // High-Contrast Monochrome Mode Switcher
                     HStack(spacing: 0) {
                         ForEach(AuthMode.allCases) { mode in
                             Button {
@@ -55,13 +59,13 @@ public struct LoginView: View {
                                 }
                             } label: {
                                 Text(mode.rawValue)
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(authMode == mode ? Color.black : AppTheme.muted)
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(authMode == mode ? Color.black : Color.white.opacity(0.85))
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
+                                    .padding(.vertical, 11)
                                     .background(
                                         authMode == mode ?
-                                        AppTheme.lime :
+                                        Color.white :
                                         Color.clear
                                     )
                                     .clipShape(Capsule())
@@ -69,153 +73,169 @@ public struct LoginView: View {
                         }
                     }
                     .padding(4)
-                    .background(AppTheme.surface)
+                    .background(Color(white: 0.12))
                     .clipShape(Capsule())
                     .overlay(
                         Capsule()
-                            .stroke(AppTheme.muted.opacity(0.15), lineWidth: 1)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
                     )
                     .padding(.horizontal, 24)
 
                     // Error Message
                     if let err = localError ?? auth.errorMessage {
-                        Text(err)
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(AppTheme.danger)
-                            .padding(.horizontal, 24)
-                            .multilineTextAlignment(.center)
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                            Text(err)
+                                .font(.caption.weight(.medium))
+                        }
+                        .foregroundStyle(Color(red: 1.0, green: 0.45, blue: 0.45))
+                        .padding(.horizontal, 24)
+                        .multilineTextAlignment(.center)
                     }
 
-                    // Dynamic Form Inputs
+                    // Form Inputs with Crystal-Clear High-Contrast Placeholders
                     VStack(spacing: 14) {
                         if authMode == .register {
                             HStack(spacing: 12) {
                                 Image(systemName: "person.fill")
-                                    .foregroundStyle(AppTheme.muted)
+                                    .foregroundStyle(Color.white.opacity(0.85))
                                     .frame(width: 20)
-                                TextField("Full Name", text: $fullName)
-                                    .foregroundStyle(AppTheme.ink)
-                                    .autocorrectionDisabled()
+
+                                ZStack(alignment: .leading) {
+                                    if fullName.isEmpty {
+                                        Text("Full Name")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(Color.white.opacity(0.65))
+                                    }
+                                    TextField("", text: $fullName)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.white)
+                                        .tint(Color.white)
+                                        .autocorrectionDisabled()
+                                }
                             }
                             .padding(16)
-                            .background(AppTheme.surface)
+                            .background(Color(white: 0.10))
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .stroke(AppTheme.muted.opacity(0.15), lineWidth: 1)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
                             )
                         }
 
                         HStack(spacing: 12) {
                             Image(systemName: "envelope.fill")
-                                .foregroundStyle(AppTheme.muted)
+                                .foregroundStyle(Color.white.opacity(0.85))
                                 .frame(width: 20)
-                            TextField("Email Address", text: $email)
-                                .keyboardType(.emailAddress)
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
-                                .foregroundStyle(AppTheme.ink)
+
+                            ZStack(alignment: .leading) {
+                                if email.isEmpty {
+                                    Text("Email Address")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.white.opacity(0.65))
+                                }
+                                TextField("", text: $email)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.white)
+                                    .tint(Color.white)
+                                    .keyboardType(.emailAddress)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                            }
                         }
                         .padding(16)
-                        .background(AppTheme.surface)
+                        .background(Color(white: 0.10))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(AppTheme.muted.opacity(0.15), lineWidth: 1)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
                         )
 
                         HStack(spacing: 12) {
                             Image(systemName: "lock.fill")
-                                .foregroundStyle(AppTheme.muted)
+                                .foregroundStyle(Color.white.opacity(0.85))
                                 .frame(width: 20)
-                            SecureField(authMode == .register ? "Password (min 6 chars)" : "Password", text: $password)
-                                .foregroundStyle(AppTheme.ink)
+
+                            ZStack(alignment: .leading) {
+                                if password.isEmpty {
+                                    Text(authMode == .register ? "Password (min 6 characters)" : "Password")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.white.opacity(0.65))
+                                }
+                                SecureField("", text: $password)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.white)
+                                    .tint(Color.white)
+                            }
                         }
                         .padding(16)
-                        .background(AppTheme.surface)
+                        .background(Color(white: 0.10))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(AppTheme.muted.opacity(0.15), lineWidth: 1)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
                         )
 
-                        // Role Picker when creating account
-                        if authMode == .register {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("ACCOUNT TYPE")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundStyle(AppTheme.muted)
-                                    .padding(.leading, 4)
-
-                                HStack(spacing: 8) {
-                                    ForEach(UserRole.allCases) { role in
-                                        Button {
-                                            selectedRole = role
-                                        } label: {
-                                            HStack(spacing: 6) {
-                                                Image(systemName: role.badgeIcon)
-                                                    .font(.caption2)
-                                                Text(role.title)
-                                                    .font(.caption.weight(.semibold))
-                                            }
-                                            .foregroundStyle(selectedRole == role ? Color.black : AppTheme.ink)
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.vertical, 10)
-                                            .background(
-                                                selectedRole == role ?
-                                                AppTheme.lime :
-                                                AppTheme.surface
-                                            )
-                                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(
-                                                        selectedRole == role ?
-                                                        AppTheme.lime :
-                                                        AppTheme.muted.opacity(0.15),
-                                                        lineWidth: 1
-                                                    )
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.top, 4)
-                        }
-
-                        // Submit Button
+                        // Action Button with Always-Readable High-Contrast Typography
                         Button {
                             handleAuthAction()
                         } label: {
                             HStack(spacing: 8) {
                                 if auth.isLoading {
                                     ProgressView()
-                                        .tint(.black)
+                                        .tint(isFormInvalid ? .white : .black)
                                 } else {
                                     Text(authMode == .signIn ? "Sign In" : "Create Account & Enter")
-                                        .font(.headline.weight(.bold))
-                                        .foregroundStyle(Color.black)
+                                        .font(.headline.weight(.black))
+                                        .foregroundStyle(isFormInvalid ? Color.white.opacity(0.75) : Color.black)
                                     Image(systemName: "arrow.right")
-                                        .font(.subheadline.weight(.bold))
-                                        .foregroundStyle(Color.black)
+                                        .font(.subheadline.weight(.black))
+                                        .foregroundStyle(isFormInvalid ? Color.white.opacity(0.75) : Color.black)
                                 }
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 52)
-                            .background(AppTheme.lime, in: Capsule())
-                            .shadow(color: AppTheme.lime.opacity(0.3), radius: 8, y: 4)
+                            .background(
+                                isFormInvalid ?
+                                Color(white: 0.20) :
+                                Color.white,
+                                in: Capsule()
+                            )
+                            .overlay(
+                                Capsule()
+                                    .stroke(isFormInvalid ? Color.white.opacity(0.22) : Color.white, lineWidth: 1)
+                            )
+                            .shadow(color: isFormInvalid ? Color.clear : Color.white.opacity(0.25), radius: 10, y: 4)
                         }
                         .disabled(auth.isLoading || isFormInvalid)
-                        .opacity(isFormInvalid ? 0.6 : 1.0)
                         .padding(.top, 6)
                     }
                     .padding(.horizontal, 24)
 
-                    Spacer(minLength: 40)
+                    // Clearly Legible Monochrome Staff Notice
+                    VStack(spacing: 5) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "lock.shield.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.white.opacity(0.75))
+                            Text("STAFF ACCESS INFORMATION")
+                                .font(.system(size: 9, weight: .black))
+                                .tracking(1.8)
+                                .foregroundStyle(Color.white.opacity(0.8))
+                        }
+                        Text("Scanner & Admin accounts are provisioned exclusively by Cinema Administration via the Web Studio.")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.white.opacity(0.75))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 28)
+                    }
+                    .padding(.top, 10)
+
+                    Spacer(minLength: 36)
                 }
             }
-            .background(AppTheme.canvas.ignoresSafeArea())
+            .background(Color.black.ignoresSafeArea())
         }
     }
 
@@ -242,8 +262,7 @@ public struct LoginView: View {
                 _ = await auth.register(
                     fullName: name.isEmpty ? "Customer" : name,
                     email: trimmedEmail,
-                    password: password,
-                    role: selectedRole
+                    password: password
                 )
             }
         }

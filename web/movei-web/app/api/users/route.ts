@@ -10,6 +10,9 @@ export interface UserRecord {
   phone?: string;
   device?: string;
   registered_at: string;
+  password?: string;
+  created_by?: 'admin' | 'mobile_app';
+  venue?: string;
 }
 
 const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
@@ -52,10 +55,13 @@ export async function POST(request: Request) {
 
     const email = (body.email || '').trim().toLowerCase();
     const name = (body.name || body.fullName || '').trim() || 'Movie Fan';
-    const role = body.role || 'customer';
+    const role = (body.role || 'customer') as 'customer' | 'scanner' | 'admin';
     const id = body.id || `u-${Date.now()}`;
     const phone = body.phone || '';
-    const device = body.device || 'iOS App (MOVEI)';
+    const device = body.device || (body.created_by === 'admin' ? 'Admin Portal' : 'iOS App (MOVEI)');
+    const password = body.password ? String(body.password).trim() : undefined;
+    const created_by = body.created_by || (role !== 'customer' ? 'admin' : 'mobile_app');
+    const venue = body.venue || '';
 
     const existingIndex = users.findIndex(
       (u) => u.id === id || (email && u.email.toLowerCase() === email)
@@ -69,6 +75,9 @@ export async function POST(request: Request) {
         role: role || users[existingIndex].role,
         phone: phone || users[existingIndex].phone,
         device: device || users[existingIndex].device,
+        password: password !== undefined ? password : users[existingIndex].password,
+        created_by: created_by || users[existingIndex].created_by,
+        venue: venue || users[existingIndex].venue,
       };
       users[existingIndex] = updatedUser;
     } else {
@@ -80,6 +89,9 @@ export async function POST(request: Request) {
         phone,
         device,
         registered_at: new Date().toISOString(),
+        password,
+        created_by,
+        venue,
       };
       users.unshift(updatedUser);
     }

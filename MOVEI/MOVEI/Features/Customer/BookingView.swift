@@ -103,7 +103,7 @@ public struct BookingView: View {
     @ViewBuilder
     private var headerSection: some View {
         HStack(spacing: 16) {
-            AsyncImage(url: movie.resolvedPosterURL ?? movie.resolvedBackdropURL) { img in
+            RobustAsyncImage(candidateURLs: movie.allPosterCandidateURLs) { img in
                 img.resizable().scaledToFill()
             } placeholder: {
                 Rectangle().fill(Color.white.opacity(0.1))

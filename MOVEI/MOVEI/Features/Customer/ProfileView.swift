@@ -88,11 +88,49 @@ public struct ProfileView: View {
                                 Text("Active Host")
                                     .font(.caption2.weight(.bold))
                                     .foregroundStyle(AppTheme.muted)
-                                TextField("e.g. Sandews-MacBook-Air.local:3000", text: $movieService.customServerHost)
+                                TextField("e.g. Cloud Tunnel or Local IP", text: $movieService.customServerHost)
                                     .font(.system(size: 13, design: .monospaced))
                                     .padding(10)
                                     .background(AppTheme.canvas)
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                // Quick Presets for Mobile Data vs Wi-Fi
+                                HStack(spacing: 8) {
+                                    Button {
+                                        movieService.customServerHost = MovieService.defaultCloudTunnel
+                                        Task { await movieService.fetchMoviesFromBackend() }
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "cloud.fill")
+                                            Text("Cloud (Mobile Data)")
+                                        }
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(movieService.customServerHost.contains("trycloudflare") ? Color.black : AppTheme.ink)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(movieService.customServerHost.contains("trycloudflare") ? AppTheme.lime : AppTheme.canvas)
+                                        .clipShape(Capsule())
+                                    }
+
+                                    Button {
+                                        movieService.customServerHost = "192.168.1.12:3000"
+                                        Task { await movieService.fetchMoviesFromBackend() }
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "wifi")
+                                            Text("Local Wi-Fi")
+                                        }
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(movieService.customServerHost.contains("192.168") ? Color.black : AppTheme.ink)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(movieService.customServerHost.contains("192.168") ? AppTheme.lime : AppTheme.canvas)
+                                        .clipShape(Capsule())
+                                    }
+                                }
+                                .padding(.top, 4)
                             }
 
                             Button {
@@ -134,20 +172,27 @@ public struct ProfileView: View {
                     }
                     .padding(.horizontal, 20)
 
-                    // Role Switcher for seamless testing across personas
+                    // Account Info
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("SWITCH ROLE / PERSONA")
+                        Text("ACCOUNT STATUS")
                             .font(.caption.weight(.bold))
                             .tracking(1.4)
                             .foregroundStyle(AppTheme.muted)
 
-                        VStack(spacing: 1) {
-                            RoleRow(title: "Customer Persona", subtitle: "Book tickets, wallet, collectibles", role: .customer, current: auth.currentRole)
-                            Divider()
-                            RoleRow(title: "Cinema Scanner Staff", subtitle: "Camera scanner, ticket verification", role: .scanner, current: auth.currentRole)
-                            Divider()
-                            RoleRow(title: "Platform Administrator", subtitle: "KPIs, movie publishing, shows, cinemas", role: .admin, current: auth.currentRole)
+                        HStack {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(auth.currentRole.title)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(AppTheme.ink)
+                                Text("Staff accounts are provisioned exclusively by Cinema Admin")
+                                    .font(.caption2)
+                                    .foregroundStyle(AppTheme.muted)
+                            }
+                            Spacer()
+                            Image(systemName: "checkmark.seal.fill")
+                                .foregroundStyle(AppTheme.lime)
                         }
+                        .padding(14)
                         .background(AppTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                     }
@@ -196,35 +241,5 @@ private struct ProfileStatTile: View {
         .padding(.vertical, 16)
         .background(AppTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-}
-
-private struct RoleRow: View {
-    let title: String
-    let subtitle: String
-    let role: UserRole
-    let current: UserRole
-
-    var body: some View {
-        Button {
-            AuthService.shared.updateRole(to: role)
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppTheme.ink)
-                    Text(subtitle)
-                        .font(.caption2)
-                        .foregroundStyle(AppTheme.muted)
-                }
-                Spacer()
-                if role == current {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(AppTheme.lime)
-                }
-            }
-            .padding(14)
-        }
     }
 }

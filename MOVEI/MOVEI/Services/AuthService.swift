@@ -39,59 +39,131 @@ public final class AuthService: ObservableObject {
         }
     }
 
-    public func signIn(email: String, password: String, role: UserRole? = nil) async -> Bool {
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
-
-        try? await Task.sleep(for: .milliseconds(300))
-
-        let determinedRole: UserRole
+    private struct BackendUserRecord: Codable {
+        let id: String
         let name: String
-        if let role = role {
-            determinedRole = role
-            name = email.components(separatedBy: "@").first?.capitalized ?? role.title
-        } else if email.lowercased().contains("admin") {
-            determinedRole = .admin
-            name = "Cinema Admin"
-        } else if email.lowercased().contains("scanner") || email.lowercased().contains("staff") {
-            determinedRole = .scanner
-            name = "Staff Scanner"
-        } else {
-            determinedRole = .customer
-            name = email.components(separatedBy: "@").first?.capitalized ?? "Customer"
-        }
-
-        let profile = Profile(id: UUID(), fullName: name, role: determinedRole)
-        self.currentUserEmail = email
-        UserDefaults.standard.set(email, forKey: "movei_cached_email")
-        saveProfile(profile)
-        await syncUserToBackend(profile: profile, email: email)
-        return true
+        let email: String
+        let role: String
+        let password: String?
+        let created_by: String?
     }
 
-    public func register(fullName: String, email: String, password: String, role: UserRole = .customer) async -> Bool {
+    private func verifyAdminCredentials(email: String, password: String) async -> (role: UserRole, name: String)? {
+        let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        // 1. Direct local studio disk file inspection (Simulator / Mac development)
+        let diskPath = "/Users/sandew/Swifts/MOVEI/web/movei-web/data/users.json"
+        if FileManager.default.fileExists(atPath: diskPath),
+           let data = try? Data(contentsOf: URL(fileURLWithPath: diskPath)),
+           let records = try? JSONDecoder().decode([BackendUserRecord].self, from: data) {
+            if let match = records.first(where: { $0.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == cleanEmail }) {
+                // If password was set by admin, verify it matches
+                if let savedPass = match.password, !savedPass.isEmpty {
+                    guard savedPass == password else {
+                        return nil // Password mismatch
+                    }
+                }
+                let role = UserRole(rawValue: match.role.lowercased()) ?? .customer
+                return (role, match.name)
+            }
+        }
+
+        // 2. Network verification across candidate backend endpoints
+        let candidateBases = [
+            MovieService.shared.activeBaseURL,
+            "http://192.168.1.12:3000",
+            "http://Sandews-MacBook-Air.local:3000",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000"
+        ]
+
+        for base in candidateBases {
+            guard let url = URL(string: "\(base)/api/auth/login") else { continue }
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.timeoutInterval = 3.0
+
+            let payload = ["email": cleanEmail, "password": password]
+            guard let body = try? JSONSerialization.data(withJSONObject: payload) else { continue }
+            request.httpBody = body
+
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                if let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let userObj = json["user"] as? [String: Any],
+                   let roleStr = userObj["role"] as? String {
+                    let role = UserRole(rawValue: roleStr.lowercased()) ?? .customer
+                    let name = (userObj["name"] as? String) ?? "Staff Member"
+                    return (role, name)
+                }
+            } catch {
+                // Try next endpoint
+            }
+        }
+
+        return nil
+    }
+
+    public func signIn(email: String, password: String) async -> Bool {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
-        try? await Task.sleep(for: .milliseconds(300))
-        let profile = Profile(id: UUID(), fullName: fullName, role: role)
-        self.currentUserEmail = email
-        UserDefaults.standard.set(email, forKey: "movei_cached_email")
+        try? await Task.sleep(for: .milliseconds(250))
+
+        let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !cleanEmail.isEmpty else {
+            errorMessage = "Please enter your email address."
+            return false
+        }
+        guard !password.isEmpty else {
+            errorMessage = "Please enter your password."
+            return false
+        }
+
+        // 1. Verify against admin-created staff credentials
+        if let staffInfo = await verifyAdminCredentials(email: cleanEmail, password: password) {
+            let profile = Profile(id: UUID(), fullName: staffInfo.name, role: staffInfo.role)
+            self.currentUserEmail = cleanEmail
+            UserDefaults.standard.set(cleanEmail, forKey: "movei_cached_email")
+            saveProfile(profile)
+            await syncUserToBackend(profile: profile, email: cleanEmail)
+            return true
+        }
+
+        // 2. If it's a known admin/staff address with wrong password, reject
+        let isStaffTarget = cleanEmail == "admin@movei.app" || cleanEmail == "scanner@movei.app"
+        if isStaffTarget {
+            errorMessage = "Invalid password for staff account. Please verify credentials provisioned by Cinema Admin."
+            return false
+        }
+
+        // 3. Normal customer sign in
+        let name = cleanEmail.components(separatedBy: "@").first?.capitalized ?? "Customer"
+        let profile = Profile(id: UUID(), fullName: name, role: .customer)
+        self.currentUserEmail = cleanEmail
+        UserDefaults.standard.set(cleanEmail, forKey: "movei_cached_email")
         saveProfile(profile)
-        await syncUserToBackend(profile: profile, email: email)
+        await syncUserToBackend(profile: profile, email: cleanEmail)
         return true
     }
 
-    public func updateRole(to role: UserRole) {
-        guard var profile = currentUser else { return }
-        profile.role = role
+    public func register(fullName: String, email: String, password: String) async -> Bool {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        try? await Task.sleep(for: .milliseconds(250))
+        let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        // App registration strictly creates customer accounts
+        let profile = Profile(id: UUID(), fullName: fullName, role: .customer)
+        self.currentUserEmail = cleanEmail
+        UserDefaults.standard.set(cleanEmail, forKey: "movei_cached_email")
         saveProfile(profile)
-        Task {
-            await syncUserToBackend(profile: profile, email: currentUserEmail)
-        }
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        await syncUserToBackend(profile: profile, email: cleanEmail)
+        return true
     }
 
     public func signOut() {

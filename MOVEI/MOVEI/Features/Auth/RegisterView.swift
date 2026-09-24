@@ -11,7 +11,6 @@ public struct RegisterView: View {
     @State private var fullName = ""
     @State private var email = ""
     @State private var password = ""
-    @State private var role: UserRole = .customer
 
     public init() {}
 
@@ -61,26 +60,9 @@ public struct RegisterView: View {
                                 .stroke(AppTheme.muted.opacity(0.15), lineWidth: 1)
                         )
 
-                    HStack(spacing: 8) {
-                        ForEach(UserRole.allCases) { r in
-                            Button {
-                                role = r
-                            } label: {
-                                Text(r.title)
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(role == r ? Color.black : AppTheme.ink)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                    .background(role == r ? AppTheme.lime : AppTheme.surface)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                        }
-                    }
-                    .padding(.top, 4)
-
                     Button {
                         Task {
-                            let ok = await auth.register(fullName: fullName, email: email, password: password, role: role)
+                            let ok = await auth.register(fullName: fullName, email: email, password: password)
                             if ok { dismiss() }
                         }
                     } label: {

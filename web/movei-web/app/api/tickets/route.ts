@@ -11,7 +11,13 @@ function getTickets(): any[] {
       return [];
     }
     const data = fs.readFileSync(ticketsFilePath, 'utf8');
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    return parsed.map((t: any) => {
+      if (t.torn || t.scanned_at) {
+        return { ...t, status: 'used', torn: true };
+      }
+      return t;
+    });
   } catch (err) {
     console.error('Error reading tickets:', err);
     return [];
@@ -24,7 +30,13 @@ function saveTickets(tickets: any[]) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(ticketsFilePath, JSON.stringify(tickets, null, 2), 'utf8');
+    const cleanTickets = tickets.map((t: any) => {
+      if (t.torn || t.scanned_at) {
+        return { ...t, status: 'used', torn: true };
+      }
+      return t;
+    });
+    fs.writeFileSync(ticketsFilePath, JSON.stringify(cleanTickets, null, 2), 'utf8');
   } catch (err) {
     console.error('Error saving tickets:', err);
   }
@@ -174,11 +186,17 @@ export async function POST(req: Request) {
       const combinedSeats = Array.from(new Set([...existingSeats, ...newSeats]));
       const mergedSeatLabel = combinedSeats.length > 0 ? combinedSeats.join(' · ') : newTicket.seat_label;
 
+      const wasAlreadyAdmitted = existing.status === 'used' || existing.torn || Boolean(existing.scanned_at) || newTicket.status === 'used';
+
       tickets[existingIndex] = {
         ...existing,
         ...newTicket,
         seat_label: mergedSeatLabel,
-        price: (existing.id !== newTicket.id && existing.price) ? (Number(existing.price) + (Number(newTicket.price) || 0)) : (Number(newTicket.price) || Number(existing.price))
+        price: (existing.id !== newTicket.id && existing.price) ? (Number(existing.price) + (Number(newTicket.price) || 0)) : (Number(newTicket.price) || Number(existing.price)),
+        status: wasAlreadyAdmitted ? 'used' : (newTicket.status || existing.status),
+        torn: wasAlreadyAdmitted ? true : (existing.torn || newTicket.torn || false),
+        scanned_at: existing.scanned_at || newTicket.scanned_at,
+        scanned_by: existing.scanned_by || newTicket.scanned_by
       };
     } else {
       tickets.unshift(newTicket);

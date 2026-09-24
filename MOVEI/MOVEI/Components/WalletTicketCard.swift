@@ -7,15 +7,15 @@ import SwiftUI
 
 public func ticketArtworkCandidates(_ ticket: Ticket) -> [URL] {
     var list: [URL] = []
-    if let b = ticket.resolvedBackdropURL { list.append(b) }
-    if let p = ticket.resolvedPosterURL, !list.contains(p) { list.append(p) }
+    for u in ticket.allBackdropCandidateURLs where !list.contains(u) { list.append(u) }
+    for u in ticket.allPosterCandidateURLs where !list.contains(u) { list.append(u) }
     let cleanTicket = ticket.movieTitle.filter { $0.isLetter || $0.isNumber }.lowercased()
     if let movie = MovieService.shared.movies.first(where: {
         let cleanMovie = $0.title.filter { $0.isLetter || $0.isNumber }.lowercased()
         return cleanMovie == cleanTicket || cleanMovie.contains(cleanTicket) || cleanTicket.contains(cleanMovie) || $0.id == ticket.showID
     }) {
-        if let mb = movie.resolvedBackdropURL, !list.contains(mb) { list.append(mb) }
-        if let mp = movie.resolvedPosterURL, !list.contains(mp) { list.append(mp) }
+        for u in movie.allBackdropCandidateURLs where !list.contains(u) { list.append(u) }
+        for u in movie.allPosterCandidateURLs where !list.contains(u) { list.append(u) }
     }
     return list
 }

@@ -1,11 +1,49 @@
 [
   {
-    "id": "B35D1970-05FE-44C0-91DC-ECA9FF6189D6",
-    "name": "Movie Fan (Customer)",
-    "email": "scanner@movei.app",
+    "id": "7682D085-A9C7-442A-879B-2C738272796D",
+    "name": "Hsandew2",
+    "email": "hsandew2@gmail.com",
     "role": "customer",
     "phone": "",
     "device": "iOS App",
-    "registered_at": "2026-09-21T15:27:24.723Z"
+    "registered_at": "2026-09-24T08:11:26.261Z",
+    "created_by": "mobile_app",
+    "venue": ""
+  },
+  {
+    "id": "u-1790236291707",
+    "name": "Gate01",
+    "email": "gate01@movei.com",
+    "role": "scanner",
+    "phone": "",
+    "device": "iOS App",
+    "registered_at": "2026-09-24T07:51:31.707Z",
+    "password": "gate01@123",
+    "created_by": "admin",
+    "venue": "Gate 01"
+  },
+  {
+    "id": "staff-admin-001",
+    "name": "Cinema Operations Director",
+    "email": "admin@movei.app",
+    "role": "admin",
+    "phone": "+94 11 234 5678",
+    "device": "Admin Web Portal",
+    "registered_at": "2026-09-24T00:00:00.000Z",
+    "password": "admin",
+    "created_by": "admin",
+    "venue": "Headquarters / All Venues"
+  },
+  {
+    "id": "staff-scanner-001",
+    "name": "Gate Scanner Personnel",
+    "email": "scanner@movei.app",
+    "role": "scanner",
+    "phone": "+94 11 765 4321",
+    "device": "Admin Web Portal",
+    "registered_at": "2026-09-24T00:00:00.000Z",
+    "password": "scanner",
+    "created_by": "admin",
+    "venue": "Cinemax Colombo - Hall 1 & 4"
   }
 ]

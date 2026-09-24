@@ -92,6 +92,14 @@ public struct Ticket: Identifiable, Codable, Hashable {
         ImageURLResolver.resolve(backdropURL, fallback: posterURL, baseURL: MovieService.shared.activeBaseURL)
     }
 
+    public var allPosterCandidateURLs: [URL] {
+        ImageURLResolver.resolveAllCandidates(posterURL, fallback: backdropURL)
+    }
+
+    public var allBackdropCandidateURLs: [URL] {
+        ImageURLResolver.resolveAllCandidates(backdropURL, fallback: posterURL)
+    }
+
     enum CodingKeys: String, CodingKey {
         case id, bookingID, showID, userID, seatID, seatLabel, ticketCode, barcodeValue, price, status, scannedAt, scannedBy, movieTitle, posterURL, backdropURL, cinemaName, screenName, showtime
     }

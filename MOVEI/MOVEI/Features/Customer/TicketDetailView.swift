@@ -19,6 +19,7 @@ public struct TicketDetailView: View {
     @State private var asmrToast: String? = nil
     @State private var scannedAtDate: Date?
     @State private var scannedByStaff: String?
+    @State private var isSnappingBack: Bool = false
 
     public init(ticket: Ticket, onDone: @escaping () -> Void) {
         self.ticket = ticket
@@ -122,19 +123,6 @@ public struct TicketDetailView: View {
                         .transition(.scale.combined(with: .opacity))
                     }
 
-                    // Guidance hint for attendee
-                    if !isTorn {
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(AppTheme.lime)
-                                .frame(width: 8, height: 8)
-                            Text("Present barcode to cinema staff for scanning")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(AppTheme.muted)
-                            Spacer()
-                        }
-                        .padding(.horizontal, 24)
-                    }
 
                     // The Ticket Assembly
                     VStack(spacing: 0) {
@@ -310,7 +298,8 @@ public struct TicketDetailView: View {
 
     // ASMR tear for customers: rips then magnetically snaps back. No backend call.
     private func triggerASMRTearAndRepaste() {
-        guard !isTorn else { return }
+        guard !isSnappingBack else { return }
+        isSnappingBack = true
 
         // Phase 1: Dramatic rip with heavy + rigid haptics
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
@@ -330,9 +319,9 @@ public struct TicketDetailView: View {
             }
         }
 
-        // Phase 3: Magnetic snap-back after ~0.75s
+        // Phase 3: Magnetic snap-back after ~0.8s
         Task {
-            try? await Task.sleep(for: .milliseconds(760))
+            try? await Task.sleep(for: .milliseconds(800))
             UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 1.0)
             withAnimation(.spring(response: 0.42, dampingFraction: 0.62)) {
                 isTorn = false
@@ -341,9 +330,10 @@ public struct TicketDetailView: View {
             }
             try? await Task.sleep(for: .milliseconds(60))
             UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.85)
-            withAnimation(.easeIn(duration: 0.05)) { asmrToast = "🔒 Snapped back — scan to admit" }
-            try? await Task.sleep(for: .milliseconds(1400))
+            withAnimation(.easeIn(duration: 0.05)) { asmrToast = "🔒 Snapped back!" }
+            try? await Task.sleep(for: .milliseconds(1200))
             withAnimation { asmrToast = nil }
+            isSnappingBack = false
         }
     }
 

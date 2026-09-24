@@ -60,6 +60,14 @@ public struct Movie: Identifiable, Codable, Hashable {
         ImageURLResolver.resolve(backdropURL, fallback: posterURL, baseURL: MovieService.shared.activeBaseURL)
     }
 
+    public var allPosterCandidateURLs: [URL] {
+        ImageURLResolver.resolveAllCandidates(posterURL, fallback: backdropURL)
+    }
+
+    public var allBackdropCandidateURLs: [URL] {
+        ImageURLResolver.resolveAllCandidates(backdropURL, fallback: posterURL)
+    }
+
     public init(
         id: String = UUID().uuidString,
         title: String,

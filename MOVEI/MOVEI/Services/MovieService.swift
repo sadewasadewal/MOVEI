@@ -28,34 +28,33 @@ public final class MovieService: ObservableObject {
         movies.filter { $0.status == .published }
     }
 
+    public static let defaultCloudTunnel = "https://validation-announced-clay-consisting.trycloudflare.com"
+
     public var activeBaseURL: String {
         if let url = URL(string: activeEndpoint), let host = url.host {
+            let scheme = url.scheme ?? "https"
             let portStr = url.port != nil ? ":\(url.port!)" : ""
-            return "http://\(host)\(portStr)"
+            return "\(scheme)://\(host)\(portStr)"
         }
         let saved = customServerHost.trimmingCharacters(in: .whitespacesAndNewlines)
         if !saved.isEmpty {
-            return saved.hasPrefix("http") ? saved : "http://\(saved)"
+            return saved.hasPrefix("http") ? saved : "https://\(saved)"
         }
-        return "http://192.168.1.12:3000"
+        return Self.defaultCloudTunnel
     }
 
     private init() {
         let savedHost = UserDefaults.standard.string(forKey: "movei_custom_server_host")
-        self.customServerHost = savedHost ?? "192.168.1.12:3000"
+        self.customServerHost = savedHost ?? Self.defaultCloudTunnel
 
-        // Flush old legacy caches to ensure clean start with exactly the 6 movies
-        UserDefaults.standard.removeObject(forKey: "movei_cached_movies")
-        UserDefaults.standard.removeObject(forKey: "movei_cached_movies_v2")
-        UserDefaults.standard.removeObject(forKey: "movei_cached_movies_v3")
-
-        // 1. Try restoring from persistent local cache v4
+        // 1. Try restoring from persistent local storage (Documents file or UserDefaults)
         if !loadFromCache() {
-            // 2. Load fresh default catalog containing the 6 requested movies
+            // 2. First install fallback: populate defaults and persist immediately
             loadDefaultMovies()
+            saveCurrentMoviesToPersistentStorage()
         }
 
-        // 3. Initial sync attempt
+        // 3. Initial sync attempt with live backend
         Task {
             await fetchMoviesFromBackend()
         }
@@ -118,10 +117,13 @@ public final class MovieService: ObservableObject {
 
         let trimmedHost = customServerHost.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedHost.isEmpty {
-            let hostWithScheme = trimmedHost.hasPrefix("http") ? trimmedHost : "http://\(trimmedHost)"
+            let hostWithScheme = trimmedHost.hasPrefix("http") ? trimmedHost : "https://\(trimmedHost)"
             let apiPath = hostWithScheme.hasSuffix("/api/movies") ? hostWithScheme : "\(hostWithScheme)/api/movies"
             candidateEndpoints.append(apiPath)
         }
+
+        // Public Cloudflare Tunnel (Accessible everywhere on Mobile Data / 4G / 5G)
+        candidateEndpoints.append("\(Self.defaultCloudTunnel)/api/movies")
 
         // Known Bonjour / LAN / loopback addresses
         candidateEndpoints.append("http://192.168.1.12:3000/api/movies")
@@ -138,7 +140,7 @@ public final class MovieService: ObservableObject {
             guard let url = URL(string: ep) else { continue }
             do {
                 var request = URLRequest(url: url)
-                request.timeoutInterval = 2.5
+                request.timeoutInterval = 3.0
                 request.cachePolicy = .reloadIgnoringLocalCacheData
                 let (data, response) = try await URLSession.shared.data(for: request)
                 if let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) {
@@ -146,8 +148,12 @@ public final class MovieService: ObservableObject {
                     if !decoded.isEmpty {
                         self.movies = decoded
                         self.saveToCache(data)
+                        self.prefetchImages(for: decoded)
                         self.activeEndpoint = ep
-                        self.syncStatusMessage = "Synced \(decoded.count) movies via \(url.host ?? "Admin")"
+                        let isCloud = ep.contains("trycloudflare.com")
+                        self.syncStatusMessage = isCloud
+                            ? "Synced \(decoded.count) movies via Mobile Cloud"
+                            : "Synced \(decoded.count) movies via \(url.host ?? "Admin")"
                         self.lastSyncDate = Date()
                         print("🛰️ [MovieService] Successfully synced \(decoded.count) movies from \(ep)")
                         return true
@@ -164,28 +170,65 @@ public final class MovieService: ObservableObject {
         return false
     }
 
+    private let cacheKeyV5 = "movei_cached_movies_v5"
+    private var persistentFileURL: URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentsDirectory = paths[0]
+        return documentsDirectory.appendingPathComponent("movei_movies_catalog_v5.json")
+    }
+
+    public func saveCurrentMoviesToPersistentStorage() {
+        if let encoded = try? JSONEncoder().encode(self.movies), !encoded.isEmpty {
+            saveToCache(encoded)
+        }
+    }
+
     private func saveToCache(_ data: Data) {
-        UserDefaults.standard.set(data, forKey: "movei_cached_movies_v3")
+        UserDefaults.standard.set(data, forKey: cacheKeyV5)
+        try? data.write(to: persistentFileURL, options: [.atomicWrite, .completeFileProtection])
     }
 
     private func loadFromCache() -> Bool {
-        guard let data = UserDefaults.standard.data(forKey: "movei_cached_movies_v4"),
-              let decoded = try? JSONDecoder().decode([Movie].self, from: data),
-              !decoded.isEmpty else {
-            return false
+        // Priority 1: Check persistent JSON file on device filesystem
+        if FileManager.default.fileExists(atPath: persistentFileURL.path),
+           let fileData = try? Data(contentsOf: persistentFileURL),
+           let decoded = try? JSONDecoder().decode([Movie].self, from: fileData),
+           !decoded.isEmpty {
+            self.movies = decoded
+            self.syncStatusMessage = "Restored \(decoded.count) movies from storage"
+            self.prefetchImages(for: decoded)
+            return true
         }
-        self.movies = decoded
-        self.syncStatusMessage = "Restored \(decoded.count) movies from cache"
-        return true
+
+        // Priority 2: Fallback to UserDefaults
+        if let data = UserDefaults.standard.data(forKey: cacheKeyV5),
+           let decoded = try? JSONDecoder().decode([Movie].self, from: data),
+           !decoded.isEmpty {
+            self.movies = decoded
+            self.syncStatusMessage = "Restored \(decoded.count) movies from cache"
+            self.prefetchImages(for: decoded)
+            try? data.write(to: persistentFileURL, options: [.atomicWrite])
+            return true
+        }
+
+        return false
+    }
+
+    public func prefetchImages(for movies: [Movie]) {
+        Task.detached(priority: .utility) {
+            for movie in movies {
+                _ = await RemoteImageLoader.shared.loadImage(from: movie.allPosterCandidateURLs)
+                _ = await RemoteImageLoader.shared.loadImage(from: movie.allBackdropCandidateURLs)
+            }
+        }
     }
 
     public func clearCacheAndReload() {
-        UserDefaults.standard.removeObject(forKey: "movei_cached_movies")
-        UserDefaults.standard.removeObject(forKey: "movei_cached_movies_v2")
-        UserDefaults.standard.removeObject(forKey: "movei_cached_movies_v3")
-        UserDefaults.standard.removeObject(forKey: "movei_cached_movies_v4")
+        try? FileManager.default.removeItem(at: persistentFileURL)
+        UserDefaults.standard.removeObject(forKey: cacheKeyV5)
         URLCache.shared.removeAllCachedResponses()
         loadDefaultMovies()
+        saveCurrentMoviesToPersistentStorage()
         Task {
             await fetchMoviesFromBackend()
         }
@@ -280,6 +323,7 @@ public final class MovieService: ObservableObject {
         } else {
             movies.append(movie)
         }
+        saveCurrentMoviesToPersistentStorage()
     }
 
     public func canPublish(movie: Movie) -> (canPublish: Bool, reasons: [String]) {
@@ -310,6 +354,7 @@ public final class MovieService: ObservableObject {
         let (valid, _) = canPublish(movie: movies[idx])
         if valid {
             movies[idx].status = .published
+            saveCurrentMoviesToPersistentStorage()
             return true
         }
         return false
@@ -318,6 +363,7 @@ public final class MovieService: ObservableObject {
     public func archive(movieID: String) {
         if let idx = movies.firstIndex(where: { $0.id == movieID }) {
             movies[idx].status = .archived
+            saveCurrentMoviesToPersistentStorage()
         }
     }
 }

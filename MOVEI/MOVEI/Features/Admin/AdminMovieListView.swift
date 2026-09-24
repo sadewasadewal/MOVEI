@@ -17,7 +17,7 @@ public struct AdminMovieListView: View {
             List {
                 ForEach(movieService.movies) { movie in
                     HStack(spacing: 14) {
-                        RobustAsyncImage(candidateURLs: [movie.resolvedPosterURL, movie.resolvedBackdropURL].compactMap { $0 }) { img in
+                        RobustAsyncImage(candidateURLs: movie.allPosterCandidateURLs) { img in
                             img.resizable().scaledToFill()
                         } placeholder: {
                             Rectangle().fill(AppTheme.passBackground)

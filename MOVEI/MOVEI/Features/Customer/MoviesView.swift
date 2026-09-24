@@ -98,7 +98,7 @@ public struct HeroCard: View {
 
     public var body: some View {
         ZStack(alignment: .bottomLeading) {
-            RobustAsyncImage(candidateURLs: [movie.resolvedBackdropURL, movie.resolvedPosterURL].compactMap { $0 }) { image in
+            RobustAsyncImage(candidateURLs: movie.allBackdropCandidateURLs) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
                 Rectangle().fill(AppTheme.passBackground)
@@ -144,7 +144,7 @@ public struct MovieGridCard: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            RobustAsyncImage(candidateURLs: [movie.resolvedPosterURL, movie.resolvedBackdropURL].compactMap { $0 }) { image in
+            RobustAsyncImage(candidateURLs: movie.allPosterCandidateURLs) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
                 Rectangle().fill(AppTheme.passBackground)

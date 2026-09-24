@@ -1,12 +1,78 @@
 [
   {
+    "id": "m-1790238919832",
+    "title": "Resident Evil 2026",
+    "slug": "resident-evil-2026",
+    "tagline": "Horror",
+    "description": "A hapless courier is tasked with delivering a package to a remote hospital. He soon finds himself caught in the middle of an outbreak and must fight through hordes of mutated creatures to survive.",
+    "poster_url": "/uploads/posters/poster-1790238849852-images-2.jpeg",
+    "backdrop_url": "/uploads/posters/poster-1790238849852-images-2.jpeg",
+    "trailer_url": "",
+    "runtime_minutes": 120,
+    "rating": 8.7,
+    "release_date": "2026-09-24",
+    "genres": [
+      "Action",
+      "Sci-Fi"
+    ],
+    "language": "English",
+    "age_rating": "PG-13",
+    "status": "published",
+    "created_at": "2026-09-24T08:35:19.843Z",
+    "updated_at": "2026-09-24T08:35:57.109Z"
+  },
+  {
+    "id": "m-1790231954059",
+    "title": "The End of Oak Street",
+    "slug": "the-end-of-oak-street",
+    "tagline": "Survival",
+    "description": "The Platt family bands together to navigate their new surroundings after a cosmic event transports their suburban neighborhood to someplace unknown.",
+    "poster_url": "/uploads/posters/poster-1790231951251-Screenshot_2026-09-24_at_12_08.png",
+    "backdrop_url": "/uploads/posters/poster-1790231951251-Screenshot_2026-09-24_at_12_08.png",
+    "trailer_url": "",
+    "runtime_minutes": 135,
+    "rating": 8.5,
+    "release_date": "2026-09-24",
+    "genres": [
+      "Action",
+      "Sci-Fi"
+    ],
+    "language": "English",
+    "age_rating": "PG-13",
+    "status": "published",
+    "created_at": "2026-09-24T06:39:14.066Z",
+    "updated_at": "2026-09-24T06:39:14.066Z"
+  },
+  {
+    "id": "m-1790185669884",
+    "title": "DOOMSDAY",
+    "slug": "doomsday",
+    "tagline": "dooms",
+    "description": "doom doom doom",
+    "poster_url": "/uploads/posters/poster-1790185665373-Image.jpeg",
+    "backdrop_url": "/uploads/posters/poster-1790185665373-Image.jpeg",
+    "trailer_url": "",
+    "runtime_minutes": 135,
+    "rating": 8.5,
+    "release_date": "2026-09-23",
+    "genres": [
+      "Action",
+      "Sci-Fi"
+    ],
+    "language": "English",
+    "age_rating": "PG-13",
+    "status": "published",
+    "created_at": "2026-09-23T17:47:49.892Z",
+    "updated_at": "2026-09-23T17:47:49.892Z"
+  },
+  {
     "id": "m-1790002659846",
     "title": "Spider-Man: Brand New Day",
     "slug": "spider-man--brand-new-day",
     "tagline": "A forgotten Peter Parker lives alone as a full-time Spider-Man ",
     "description": "A forgotten Peter Parker lives alone as a full-time Spider-Man until mounting pressure triggers a dangerous change and a powerful new enemy emerges.",
-    "poster_url": "http://localhost:3000/uploads/posters/poster-1790002654640-WhatsApp_Image_2026-09-21_at_1.jpeg",
-    "backdrop_url": "http://localhost:3000/uploads/posters/poster-1790002654640-WhatsApp_Image_2026-09-21_at_1.jpeg",
+    "poster_url": "/uploads/posters/poster-1790002654640-WhatsApp_Image_2026-09-21_at_1.jpeg",
+    "backdrop_url": "/uploads/posters/poster-1790002654640-WhatsApp_Image_2026-09-21_at_1.jpeg",
     "trailer_url": "",
     "runtime_minutes": 145,
     "rating": 8,
@@ -42,7 +108,7 @@
     "age_rating": "PG",
     "status": "published",
     "created_at": "2026-09-21T00:00:00.000Z",
-    "updated_at": "2026-09-21T00:00:00.000Z"
+    "updated_at": "2026-09-24T09:01:43.902Z"
   },
   {
     "id": "m-inception",

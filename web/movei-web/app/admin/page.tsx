@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Admin Modules Navigation Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <Link
           href="/admin/movies"
           className="glass-panel p-6 rounded-3xl border border-white/10 space-y-3 glass-panel-hover"
@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
           <div className="w-10 h-10 rounded-xl bg-[#bae861]/15 text-[#bae861] flex items-center justify-center">
             <Film className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-extrabold text-white">Movie Catalog & Aspect Ratios</h3>
+          <h3 className="text-base font-extrabold text-white">Movie Catalog</h3>
           <p className="text-xs text-gray-400">
             Publish or archive movies. Enforces 2:3 posters and 16:9 backdrops with live preview.
           </p>
@@ -126,9 +126,22 @@ export default function AdminDashboardPage() {
           <div className="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center">
             <Building2 className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-extrabold text-white">Cinema & Screen Layouts</h3>
+          <h3 className="text-base font-extrabold text-white">Cinema Venues</h3>
           <p className="text-xs text-gray-400">
             Manage partner venues, IMAX and Dolby Atmos screens, and seat map row labels.
+          </p>
+        </Link>
+
+        <Link
+          href="/?tab=users"
+          className="glass-panel p-6 rounded-3xl border border-white/10 space-y-3 glass-panel-hover"
+        >
+          <div className="w-10 h-10 rounded-xl bg-[#007aff]/15 text-[#007aff] flex items-center justify-center">
+            <Users className="w-5 h-5" />
+          </div>
+          <h3 className="text-base font-extrabold text-white">Staff & Scanner Accounts</h3>
+          <p className="text-xs text-gray-400">
+            Provision staff credentials for door scanners and administrators to access the iOS mobile app.
           </p>
         </Link>
       </div>
