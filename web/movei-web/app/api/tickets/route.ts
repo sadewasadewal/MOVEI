@@ -171,7 +171,10 @@ export async function POST(req: Request) {
       showtime: body.showtime || 'Tomorrow, 7:30 PM',
       created_at: new Date().toISOString(),
       poster_url: body.poster_url || body.posterURL || '',
-      backdrop_url: body.backdrop_url || body.backdropURL || ''
+      backdrop_url: body.backdrop_url || body.backdropURL || '',
+      torn: Boolean(body.torn) || false,
+      scanned_at: body.scanned_at || null,
+      scanned_by: body.scanned_by || null
     };
 
     const existingIndex = tickets.findIndex(

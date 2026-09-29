@@ -1,5 +1,27 @@
 [
   {
+    "id": "m-1790508584070",
+    "title": "pakaya",
+    "slug": "pakaya",
+    "tagline": "pajka",
+    "description": "cdcjso",
+    "poster_url": "/uploads/posters/poster-1790508575296-the-odyssey_86fuoi4y_jpg.png",
+    "backdrop_url": "/uploads/posters/poster-1790508575296-the-odyssey_86fuoi4y_jpg.png",
+    "trailer_url": "",
+    "runtime_minutes": 135,
+    "rating": 8.5,
+    "release_date": "2026-09-27",
+    "genres": [
+      "Action",
+      "Sci-Fi"
+    ],
+    "language": "English",
+    "age_rating": "PG-13",
+    "status": "published",
+    "created_at": "2026-09-27T11:29:44.095Z",
+    "updated_at": "2026-09-27T11:31:16.959Z"
+  },
+  {
     "id": "m-1790238919832",
     "title": "Resident Evil 2026",
     "slug": "resident-evil-2026",

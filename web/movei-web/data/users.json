@@ -1,5 +1,39 @@
 [
   {
+    "id": "u-1790673183428",
+    "name": "gate02",
+    "email": "gate02@movei.com",
+    "role": "scanner",
+    "phone": "",
+    "device": "iOS App",
+    "registered_at": "2026-09-29T09:13:03.428Z",
+    "password": "gate02@123",
+    "created_by": "admin",
+    "venue": "All Venues"
+  },
+  {
+    "id": "9DAB2698-099C-4D35-AB2E-C358AEA7A378",
+    "name": "Scanner",
+    "email": "scanner@movei.com",
+    "role": "customer",
+    "phone": "",
+    "device": "iOS App",
+    "registered_at": "2026-09-29T09:11:29.957Z",
+    "created_by": "mobile_app",
+    "venue": ""
+  },
+  {
+    "id": "82DEF8FF-6D0C-4519-900D-BB2FA5CAF9B5",
+    "name": "Hsandew",
+    "email": "hsandew@gmail.com",
+    "role": "customer",
+    "phone": "",
+    "device": "iOS App",
+    "registered_at": "2026-09-29T09:08:35.927Z",
+    "created_by": "mobile_app",
+    "venue": ""
+  },
+  {
     "id": "7682D085-A9C7-442A-879B-2C738272796D",
     "name": "Hsandew2",
     "email": "hsandew2@gmail.com",
@@ -14,12 +48,12 @@
     "id": "u-1790236291707",
     "name": "Gate01",
     "email": "gate01@movei.com",
-    "role": "scanner",
+    "role": "customer",
     "phone": "",
     "device": "iOS App",
     "registered_at": "2026-09-24T07:51:31.707Z",
     "password": "gate01@123",
-    "created_by": "admin",
+    "created_by": "mobile_app",
     "venue": "Gate 01"
   },
   {

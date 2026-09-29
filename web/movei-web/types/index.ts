@@ -115,6 +115,9 @@ export interface Ticket {
   scanned_at?: string | null;
   scanned_by?: string | null;
   approved_at?: string | null;
+  torn?: boolean;
+  poster_url?: string;
+  backdrop_url?: string;
   created_at?: string;
   seat?: Seat;
   show?: Show;

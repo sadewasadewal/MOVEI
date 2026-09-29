@@ -1,5 +1,25 @@
 [
   {
+    "id": "A5BE5FF0-FAA9-4E3D-A3EA-691F5CC746B7",
+    "booking_id": "MOV-AB545D",
+    "show_id": "show-m-1790231954059-140",
+    "user_id": "F0757990-4D96-4EA9-B82A-D70D75831B13",
+    "customer_name": "Hsandew2",
+    "customer_email": "hsandew2@gmail.com",
+    "movie_title": "The End of Oak Street",
+    "cinema_name": "Cinemax Colombo",
+    "screen_name": "Screen 04",
+    "seat_label": "C4 · C5",
+    "ticket_code": "MOV-AB545D-01",
+    "barcode_value": "MOV-AB545D-01",
+    "price": 3600,
+    "status": "confirmed",
+    "showtime": "Sep 29, 2026 at 2:00 PM",
+    "created_at": "2026-09-29T09:18:14.818Z",
+    "poster_url": "http://Sandews-MacBook-Air.local:3000/uploads/posters/poster-1790231951251-Screenshot_2026-09-24_at_12_08.png",
+    "backdrop_url": "http://Sandews-MacBook-Air.local:3000/uploads/posters/poster-1790231951251-Screenshot_2026-09-24_at_12_08.png"
+  },
+  {
     "id": "89C2B9D4-1923-4747-9594-AAA17EA31547",
     "booking_id": "MOV-75EB31",
     "show_id": "show-wicked-01",
