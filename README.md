@@ -1,7 +1,5 @@
 # MOVEI
 
----
-
 ## 📖 Overview
 
 **MOVEI** is an iOS application designed to elevate the cinema ticket booking experience. Built from the ground up with **SwiftUI** and **SwiftData**, MOVEI features an immersive full-bleed movie carousel, visual seat selection, an interactive stacked card wallet, and an authentic **physical swipe-to-tear ticket** with real-time perforation haptics and an admitted seal.
