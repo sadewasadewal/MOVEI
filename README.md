@@ -1,11 +1,4 @@
-# MOVEI 🎬 🍿
-### *Premium Cinema & Movie Ticket Booking Experience for iOS*
-
-![Swift](https://img.shields.io/badge/Swift-5.10%20%7C%206.0-F05138?logo=swift&logoColor=white)
-![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-0071e3?logo=apple&logoColor=white)
-![SwiftData](https://img.shields.io/badge/Storage-SwiftData-5856D6?logo=apple&logoColor=white)
-![iOS](https://img.shields.io/badge/iOS-17.0%2B-000000?logo=apple&logoColor=white)
-![Platform](https://img.shields.io/badge/Platform-iPhone-gray?logo=apple&logoColor=white)
+# MOVEI
 
 ---
 
